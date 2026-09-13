@@ -1,0 +1,20 @@
+name: iOS build and race engine
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test sailing geometry and decisions
+        run: swift test
+      - name: Build iPhone and iPad app
+        run: >-
+          xcodebuild -project Pruva.xcodeproj -scheme Pruva
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath build CODE_SIGNING_ALLOWED=NO build

@@ -1,0 +1,27 @@
+import AppKit
+
+let size = NSSize(width: 1024, height: 1024)
+let image = NSImage(size: size)
+image.lockFocus()
+NSColor(calibratedRed: 0.95, green: 0.975, blue: 0.967, alpha: 1).setFill()
+NSBezierPath(rect: NSRect(origin: .zero, size: size)).fill()
+let teal = NSColor(calibratedRed: 0.14, green: 0.47, blue: 0.46, alpha: 1)
+teal.setFill()
+let sail = NSBezierPath()
+sail.move(to: NSPoint(x: 507, y: 795))
+sail.curve(to: NSPoint(x: 246, y: 333), controlPoint1: NSPoint(x: 454, y: 585), controlPoint2: NSPoint(x: 330, y: 412))
+sail.line(to: NSPoint(x: 507, y: 363)); sail.close(); sail.fill()
+NSColor(calibratedRed: 0.63, green: 0.78, blue: 0.74, alpha: 1).setFill()
+let jib = NSBezierPath()
+jib.move(to: NSPoint(x: 544, y: 700)); jib.line(to: NSPoint(x: 768, y: 363)); jib.line(to: NSPoint(x: 544, y: 363)); jib.close(); jib.fill()
+teal.setFill()
+let hull = NSBezierPath()
+hull.move(to: NSPoint(x: 240, y: 320)); hull.line(to: NSPoint(x: 791, y: 320))
+hull.curve(to: NSPoint(x: 678, y: 246), controlPoint1: NSPoint(x: 758, y: 262), controlPoint2: NSPoint(x: 722, y: 246))
+hull.line(to: NSPoint(x: 347, y: 246)); hull.close(); hull.fill()
+NSColor(calibratedRed: 0.76, green: 0.63, blue: 0.39, alpha: 1).setStroke()
+let wave = NSBezierPath(); wave.lineWidth = 7; wave.lineCapStyle = .round
+wave.move(to: NSPoint(x: 350, y: 198)); wave.curve(to: NSPoint(x: 669, y: 198), controlPoint1: NSPoint(x: 438, y: 174), controlPoint2: NSPoint(x: 573, y: 174)); wave.stroke()
+image.unlockFocus()
+let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!
+try bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: CommandLine.arguments[1]))
