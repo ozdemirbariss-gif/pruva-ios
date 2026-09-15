@@ -1,6 +1,25 @@
 import XCTest
 
 final class PruvaUITests: XCTestCase {
+    @MainActor func testWrittenVoiceCommandShowsModelAdvice() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting", "-AppleLanguages", "(tr)", "-AppleLocale", "tr_TR"]
+        app.launch()
+        let input = app.textFields["voice-command-input"]
+        XCTAssertTrue(input.waitForExistence(timeout: 10))
+        XCTAssertTrue(input.isHittable)
+        input.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+        input.typeText("Rüzgâr açtı")
+        app.buttons["voice-submit"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["voice-advice"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["KONTRAYI KORU"].exists)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Voice command advice"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     @MainActor func testScenarioAndDecisionJournal() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting", "-AppleLanguages", "(tr)", "-AppleLocale", "tr_TR"]

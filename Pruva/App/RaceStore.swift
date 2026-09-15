@@ -43,6 +43,9 @@ final class RaceStore {
     var markName = "Yarış şamandırası"
     var committeePinCoordinate: GeoCoordinate?
     var portPinCoordinate: GeoCoordinate?
+    var pinFeedback: String?
+    var voiceAdvice: VoiceAdvice?
+    var volumePinArmed = false
     private var localOrigin: GeoCoordinate?
     private var simulationInput = DemoScenario.longTack.input
     private var simulationName = DemoScenario.longTack.title
@@ -237,6 +240,7 @@ final class RaceStore {
         guard isLiveMode else { return }
         disconnectBoat()
         isLiveMode = false
+        volumePinArmed = false
         input = simulationInput
         scenarioName = simulationName
         windDirections = [input.windDirection]
@@ -283,15 +287,17 @@ final class RaceStore {
     }
 
     @discardableResult func captureStartPin(_ endpoint: StartEndpoint) -> String {
-        guard isLiveMode, let fix = freshPosition else { return "Güncel tekne GPS konumu bekleniyor." }
+        guard isLiveMode, let fix = freshPosition else {
+            return pinResult("Güncel tekne GPS konumu bekleniyor.")
+        }
         let other = endpoint == .committee ? portPinCoordinate : committeePinCoordinate
         if let other {
             guard let delta = fix.value.projected(relativeTo: other) else {
-                return "Diğer start pini yerel parkur hesabı için çok uzak."
+                return pinResult("Diğer start pini yerel parkur hesabı için çok uzak.")
             }
             let separation = hypot(delta.east, delta.north)
             guard (1...10_000).contains(separation) else {
-                return separation < 1 ? "İki start pini aynı konumda olamaz." : "Start hattı 10 km sınırını aşamaz."
+                return pinResult(separation < 1 ? "İki start pini aynı konumda olamaz." : "Start hattı 10 km sınırını aşamaz.")
             }
         }
         switch endpoint {
@@ -299,13 +305,38 @@ final class RaceStore {
         case .port: portPinCoordinate = fix.value
         }
         persist()
-        return endpoint == .committee ? "Komite · starboard pini alındı." : "Şamandıra · port pini alındı."
+        return pinResult(endpoint == .committee ? "Komite · starboard pini alındı." : "Şamandıra · port pini alındı.")
+    }
+
+    private func pinResult(_ message: String) -> String {
+        pinFeedback = message
+        return message
     }
 
     func clearStartLine() {
         committeePinCoordinate = nil
         portPinCoordinate = nil
+        pinFeedback = nil
         persist()
+    }
+
+    func respondToCommand(_ command: String) -> VoiceAdvice {
+        let intent = VoiceAdvisor.intent(for: command)
+        if intent == .committeePin || intent == .portPin {
+            let message = captureStartPin(intent == .committeePin ? .committee : .port)
+            let succeeded = message.contains("alındı")
+            let advice = VoiceAdvice(command: command, title: succeeded ? "PIN ALINDI" : "PIN ALINAMADI",
+                                     detail: message, spoken: message,
+                                     symbol: succeeded ? "mappin.circle.fill" : "location.slash",
+                                     tone: succeeded ? .information : .caution)
+            voiceAdvice = advice
+            return advice
+        }
+        let advice = VoiceAdvisor.advice(for: command, analysis: analysis,
+                                         readiness: isLiveMode ? liveReadinessMessage : nil,
+                                         measuredShift: isLiveMode ? relativeWind : nil)
+        voiceAdvice = advice
+        return advice
     }
 }
 

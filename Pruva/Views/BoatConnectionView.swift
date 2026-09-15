@@ -1,5 +1,6 @@
 import SwiftUI
 import RaceCore
+import UIKit
 
 struct BoatConnectionView: View {
     @Environment(RaceStore.self) private var store
@@ -86,6 +87,12 @@ struct BoatConnectionView: View {
                             .font(.system(size: 12, weight: .semibold, design: .monospaced))
                             .foregroundStyle(Palette.teal)
                         if let startMessage { Text(startMessage).font(.footnote).foregroundStyle(Palette.secondary) }
+                        if store.isLiveMode && UIDevice.current.userInterfaceIdiom == .phone {
+                            Toggle("Ses tuşlarıyla start pini", isOn: $store.volumePinArmed)
+                                .accessibilityIdentifier("volume-pin-mode")
+                            Text("Pin modunda ses açma komite/starboard, ses azaltma port ucunu alır. Ses seviyesi de değişir; sınırda tuş algılanmaz. Kontrol Merkezi gibi diğer ses değişimleri de pin alabilir. Haritadaki düğmeleri yedek olarak kullanın.")
+                                .font(.footnote).foregroundStyle(Palette.secondary)
+                        }
                         if store.committeePinCoordinate != nil || store.portPinCoordinate != nil {
                             Button("Start pinlerini temizle", role: .destructive) {
                                 store.clearStartLine(); startMessage = nil

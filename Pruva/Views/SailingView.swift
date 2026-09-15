@@ -4,11 +4,13 @@ import RaceCore
 
 struct SailingView: View {
     @Environment(RaceStore.self) private var store
+    @Environment(VoiceCommandService.self) private var voice
     @State private var showLayers = false
     @State private var showPresets = false
     @State private var showReasons = false
     @State private var note = ""
-    @State private var startPinMessage: String?
+    @State private var typedCommand = ""
+    @FocusState private var commandFocused: Bool
 
     var body: some View {
         GeometryReader { proxy in
@@ -26,10 +28,11 @@ struct SailingView: View {
                     if proxy.size.width > 760 {
                         HStack(alignment: .top, spacing: 22) {
                             VStack(spacing: 18) { instruments; map(height: 480); windCard }.frame(maxWidth: .infinity)
-                            VStack(spacing: 18) { decision; navigatorCard; saveCard }.frame(width: 320)
+                            VStack(spacing: 18) { voiceCard; decision; navigatorCard; saveCard }.frame(width: 320)
                         }
                     } else {
                         instruments
+                        voiceCard
                         map(height: 310)
                         decision
                         windCard
@@ -54,6 +57,13 @@ struct SailingView: View {
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Bitti") { showPresets = false } } }
             }.presentationDetents([.medium, .large])
         }
+        .onAppear {
+            voice.onCommand = { [weak voice] command in
+                let advice = store.respondToCommand(command)
+                voice?.speak(advice.spoken)
+            }
+        }
+        .onDisappear { voice.stop(); voice.onCommand = nil }
     }
 
     private var title: some View {
@@ -138,8 +148,8 @@ struct SailingView: View {
                     startPinButton("PIN · PORT", endpoint: .port,
                                    captured: store.portPinCoordinate != nil, identifier: "capture-start-port")
                 }.padding(.horizontal, 12).padding(.top, 12)
-                if let startPinMessage {
-                    Text(startPinMessage).font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                if let message = store.pinFeedback {
+                    Text(message).font(.system(size: 11)).foregroundStyle(Palette.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18)
                 }
             }
@@ -162,7 +172,7 @@ struct SailingView: View {
 
     private func startPinButton(_ title: String, endpoint: StartEndpoint,
                                 captured: Bool, identifier: String) -> some View {
-        Button { startPinMessage = store.captureStartPin(endpoint) } label: {
+        Button { store.captureStartPin(endpoint) } label: {
             HStack(spacing: 5) {
                 Image(systemName: captured ? "checkmark.circle.fill" : "location.circle")
                 Text(title).lineLimit(1).minimumScaleFactor(0.75)
@@ -173,6 +183,77 @@ struct SailingView: View {
                             in: RoundedRectangle(cornerRadius: 10))
         }.buttonStyle(.plain).disabled(store.freshPosition == nil)
             .accessibilityIdentifier(identifier)
+    }
+
+    private var voiceCard: some View {
+        Surface {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Image(systemName: "waveform").foregroundStyle(voice.isListening ? Palette.gold : Palette.teal)
+                        .symbolEffect(.pulse, options: .repeating, value: voice.isListening)
+                    TextField("Rüzgâr açtı · Layline'dayız", text: $typedCommand)
+                        .font(.system(size: 12)).textInputAutocapitalization(.sentences)
+                        .focused($commandFocused)
+                        .submitLabel(.send).onSubmit(sendTypedCommand)
+                        .accessibilityIdentifier("voice-command-input")
+                    Button(action: sendTypedCommand) {
+                        Image(systemName: "arrow.up.circle.fill").font(.system(size: 24))
+                    }.disabled(typedCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityLabel("Komutu değerlendir").accessibilityIdentifier("voice-submit")
+                    Button {
+                        commandFocused = false
+                        if voice.isListening { voice.finish() }
+                        else { Task { await voice.start() } }
+                    } label: {
+                        Image(systemName: voice.isListening ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 26))
+                    }.disabled(voice.isStarting)
+                        .accessibilityLabel(voice.isStarting ? "Mikrofon hazırlanıyor" : voice.isListening ? "Dinlemeyi bitir" : "Sesli komut ver")
+                        .accessibilityIdentifier("voice-listen")
+                }.foregroundStyle(Palette.teal)
+                if voice.isStarting || voice.isListening {
+                    Text(voice.isStarting ? "MİKROFON HAZIRLANIYOR" : voice.transcript.isEmpty ? "DİNLİYOR" : voice.transcript)
+                        .font(.system(size: 11, design: .monospaced)).foregroundStyle(Palette.gold)
+                }
+                if let error = voice.errorMessage {
+                    Text(error).font(.system(size: 11)).foregroundStyle(Palette.gold)
+                }
+                if let advice = store.voiceAdvice {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: advice.symbol).font(.system(size: 23))
+                            .symbolEffect(.pulse, options: .repeating, value: advice.title)
+                            .frame(width: 35, height: 35)
+                            .background(cueColor(advice.tone).opacity(0.17), in: Circle())
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(advice.title).font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .tracking(0.7)
+                            Text(advice.detail).font(.system(size: 12)).foregroundStyle(Palette.ink)
+                        }
+                        Spacer(minLength: 0)
+                        Button { voice.speak(advice.spoken) } label: { Image(systemName: "speaker.wave.2") }
+                            .accessibilityLabel("Yanıtı tekrar seslendir")
+                    }.foregroundStyle(cueColor(advice.tone))
+                        .padding(10).background(Palette.background, in: RoundedRectangle(cornerRadius: 10))
+                        .accessibilityIdentifier("voice-advice")
+                }
+            }
+        }
+    }
+
+    private func sendTypedCommand() {
+        let command = typedCommand.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !command.isEmpty else { return }
+        typedCommand = ""
+        commandFocused = false
+        let advice = store.respondToCommand(command)
+        voice.speak(advice.spoken)
+    }
+
+    private func cueColor(_ tone: VoiceTone) -> Color {
+        switch tone {
+        case .information: Palette.teal
+        case .caution, .action: Palette.gold
+        }
     }
 
     @ViewBuilder private var decision: some View {

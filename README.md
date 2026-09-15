@@ -10,6 +10,7 @@ Uygulama **çevrimdışı simülasyon / manuel karar laboratuvarı** ile **Wi-Fi
   <img src="docs/screenshots/iphone-seyir.png" width="250" alt="Pruva iPhone seyir ekranı">
   <img src="docs/screenshots/iphone-senaryolar.png" width="250" alt="Pruva senaryo laboratuvarı">
   <img src="docs/screenshots/iphone-defter.png" width="250" alt="Pruva seyir defteri">
+  <img src="docs/screenshots/iphone-sesli-komut.png" width="250" alt="Pruva sesli komutun yazılı ve görsel karar yanıtı">
 </p>
 
 [iPad ekranını görüntüle](docs/screenshots/ipad-seyir.png)
@@ -28,6 +29,7 @@ Bu ekran görüntüleri simülasyon akışını gösterir.
 - **Seyir defteri:** karar ve ekip notunu cihazda sakla; eski koşulları haritada aç; farklı rüzgârla karşılaştır; metin notunu iOS paylaşım menüsünden dışa aktar.
 - **Wi-Fi ölçüm yolu:** yapılandırılabilir TCP host/port veya UDP unicast dinleme; SOG/STW ve gerçek/görünür rüzgâr ayrımı; 15 saniye güncellik kontrolü ve 2 dakikalık dairesel rüzgâr referansı. Ham telemetri yüklenmez.
 - **Start hattı:** komite/starboard ve şamandıra/port uçları teknenin güncel NMEA GPS konumundan ayrı ayrı pinlenir; iki uç alınınca çizgi ve uzunluğu parkurda görünür.
+- **Sesli karar desteği:** Türkçe bas-konuş ve yazılı komut; rüzgâr, layline ve durum bildirimine ölçümlere dayalı sesli, hareketli görsel ve yazılı yanıt. Canlı iPhone'da isteğe bağlı ses tuşu pin modu.
 - iPhone'da dikey akış, geniş iPad ekranında parkur ve kararın yan yana yerleşimi.
 
 ## Xcode'da çalıştırma

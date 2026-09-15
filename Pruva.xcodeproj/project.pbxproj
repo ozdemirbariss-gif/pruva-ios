@@ -8,10 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		060B30AD5A926B50D394A424 /* BoatConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */; };
+		0D2D230A0B0716EDDEBA7BA7 /* VoiceAdvisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1C46AC42EEEF123DC30BD7 /* VoiceAdvisor.swift */; };
 		10CF1DFC9BFC0989FD5B4703 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF34139F66B61F901B93ED63 /* DesignSystem.swift */; };
 		205E093C7AAE14C9A3C83299 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */; };
+		2EEC6C8240E086AA24946B83 /* VoiceAdvisorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD97922B49CBFC572F353786 /* VoiceAdvisorTests.swift */; };
 		45818E584A478BFA0C1F4E7A /* RaceStoreLiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */; };
 		4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3848EE58F61E7F185DD04D82 /* ScenarioView.swift */; };
+		516D003D6828DC1E3E1B2A03 /* VolumePinShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262688DB96682C5B406DFF78 /* VolumePinShortcut.swift */; };
 		53B1E3E91AA5A334F12E5187 /* NMEAConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */; };
 		60E6AEB69E27FDF28EB6673E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01DAFDA1DC9F2F512E277124 /* Assets.xcassets */; };
 		6A52C2626FB4EB89FC25EB98 /* RaceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0F2292C8F81E5F3A7142706C /* RaceCore */; };
@@ -19,6 +22,7 @@
 		8104FB6366D1774022C6CF81 /* RaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */; };
 		87A139360615EB51051C5AC0 /* SailingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF39981454632F6692215E9C /* SailingView.swift */; };
 		8A8C4B0F4A4EF21DE12A694F /* LogbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A3DDEFC18493918CEDA250 /* LogbookView.swift */; };
+		8DC0E72D04431471121C3BED /* VoiceCommandService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1696023D83F98C9E4A61B0F1 /* VoiceCommandService.swift */; };
 		927DC4C71C2CD4A6CECA2192 /* PruvaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589D5F96E99B848222633617 /* PruvaUITests.swift */; };
 		AC163AEF771F3F92B450601D /* PruvaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */; };
 		DB0E7152732BE74E6C0EFCD9 /* TacticalMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79245FF1BE52AF8FBD6C29F8 /* TacticalMapView.swift */; };
@@ -44,6 +48,8 @@
 /* Begin PBXFileReference section */
 		01DAFDA1DC9F2F512E277124 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1696023D83F98C9E4A61B0F1 /* VoiceCommandService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceCommandService.swift; sourceTree = "<group>"; };
+		262688DB96682C5B406DFF78 /* VolumePinShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumePinShortcut.swift; sourceTree = "<group>"; };
 		26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStoreLiveTests.swift; sourceTree = "<group>"; };
 		32A3DDEFC18493918CEDA250 /* LogbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookView.swift; sourceTree = "<group>"; };
 		3848EE58F61E7F185DD04D82 /* ScenarioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioView.swift; sourceTree = "<group>"; };
@@ -54,8 +60,10 @@
 		7F17568A9649C3C3E915600A /* Pruva.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pruva.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NMEAConnection.swift; sourceTree = "<group>"; };
 		A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PruvaApp.swift; sourceTree = "<group>"; };
+		BD1C46AC42EEEF123DC30BD7 /* VoiceAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAdvisor.swift; sourceTree = "<group>"; };
 		BF39981454632F6692215E9C /* SailingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingView.swift; sourceTree = "<group>"; };
 		CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoatConnectionView.swift; sourceTree = "<group>"; };
+		DD97922B49CBFC572F353786 /* VoiceAdvisorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAdvisorTests.swift; sourceTree = "<group>"; };
 		DF34139F66B61F901B93ED63 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStore.swift; sourceTree = "<group>"; };
 		EDE5F6348321C2C77552F2BA /* Navigatör Yardımcısı */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Navigatör Yardımcısı"; path = .; sourceTree = SOURCE_ROOT; };
@@ -115,6 +123,7 @@
 			children = (
 				A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */,
 				E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */,
+				BD1C46AC42EEEF123DC30BD7 /* VoiceAdvisor.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -133,6 +142,8 @@
 			isa = PBXGroup;
 			children = (
 				8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */,
+				1696023D83F98C9E4A61B0F1 /* VoiceCommandService.swift */,
+				262688DB96682C5B406DFF78 /* VolumePinShortcut.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -155,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */,
+				DD97922B49CBFC572F353786 /* VoiceAdvisorTests.swift */,
 			);
 			path = PruvaTests;
 			sourceTree = "<group>";
@@ -294,6 +306,9 @@
 				87A139360615EB51051C5AC0 /* SailingView.swift in Sources */,
 				4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */,
 				DB0E7152732BE74E6C0EFCD9 /* TacticalMapView.swift in Sources */,
+				0D2D230A0B0716EDDEBA7BA7 /* VoiceAdvisor.swift in Sources */,
+				8DC0E72D04431471121C3BED /* VoiceCommandService.swift in Sources */,
+				516D003D6828DC1E3E1B2A03 /* VolumePinShortcut.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,6 +317,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				45818E584A478BFA0C1F4E7A /* RaceStoreLiveTests.swift in Sources */,
+				2EEC6C8240E086AA24946B83 /* VoiceAdvisorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,6 +437,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Pruva;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Pruva teknenizin Wi-Fi ağındaki NMEA cihazından GPS konumu, hız ve rüzgâr ölçümlerini almak için yerel ağa bağlanır.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Pruva yalnız sesli komut düğmesine bastığınızda Türkçe komutunuzu dinler.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Pruva sesli yarış bildirimlerinizi yazıya çevirmek ve karar desteği sunmak için konuşma tanıma kullanır.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -554,6 +572,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Pruva;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Pruva teknenizin Wi-Fi ağındaki NMEA cihazından GPS konumu, hız ve rüzgâr ölçümlerini almak için yerel ağa bağlanır.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Pruva yalnız sesli komut düğmesine bastığınızda Türkçe komutunuzu dinler.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Pruva sesli yarış bildirimlerinizi yazıya çevirmek ve karar desteği sunmak için konuşma tanıma kullanır.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

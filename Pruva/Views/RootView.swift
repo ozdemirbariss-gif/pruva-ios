@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import RaceCore
+import UIKit
 
 enum AppTab: String, CaseIterable {
     case sail = "Seyir", scenarios = "Senaryolar", log = "Seyir defteri"
@@ -18,6 +19,8 @@ struct RootView: View {
     @State private var tab = AppTab.sail
     @State private var showAbout = false
     @State private var showConnection = false
+    @State private var voice = VoiceCommandService()
+    @State private var volumeShortcut = VolumePinShortcut()
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -43,7 +46,7 @@ struct RootView: View {
 
             Group {
                 switch tab {
-                case .sail: SailingView()
+                case .sail: SailingView().environment(voice)
                 case .scenarios:
                     if store.isLiveMode {
                         ContentUnavailableView {
@@ -80,13 +83,33 @@ struct RootView: View {
         }
         .sheet(isPresented: $showAbout) { AboutView() }
         .sheet(isPresented: $showConnection) { BoatConnectionView() }
-        .onReceive(timer) { _ in store.tick() }
+        .onReceive(timer) { _ in store.tick(); syncVolumeShortcut() }
+        .onAppear { syncVolumeShortcut() }
+        .onChange(of: store.volumePinArmed) { _, _ in syncVolumeShortcut() }
+        .onChange(of: store.isLiveMode) { _, _ in syncVolumeShortcut() }
+        .onChange(of: showConnection) { _, _ in syncVolumeShortcut() }
+        .onChange(of: tab) { _, _ in syncVolumeShortcut() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background { store.isPlaying = false; store.disconnectBoat(); store.persist() }
+            if phase == .background {
+                voice.stop(); volumeShortcut.stop()
+                store.isPlaying = false; store.disconnectBoat(); store.persist()
+            } else { syncVolumeShortcut() }
         }
         .alert("Saklama bilgisi", isPresented: Binding(get: { store.storageMessage != nil }, set: { if !$0 { store.storageMessage = nil } })) {
             Button("Tamam") { store.storageMessage = nil }
         } message: { Text(store.storageMessage ?? "") }
+    }
+
+    private func syncVolumeShortcut() {
+        let enabled = scenePhase == .active && tab == .sail && !showConnection
+            && UIDevice.current.userInterfaceIdiom == .phone
+            && store.isLiveMode && store.connection.isRunning && store.volumePinArmed
+        guard enabled else { volumeShortcut.stop(); return }
+        volumeShortcut.onEndpoint = { endpoint in
+            let advice = store.respondToCommand(endpoint == .committee ? "komite pin" : "port pin")
+            voice.speak(advice.spoken)
+        }
+        volumeShortcut.start()
     }
 }
 

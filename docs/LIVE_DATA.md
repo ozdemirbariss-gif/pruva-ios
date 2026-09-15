@@ -56,6 +56,12 @@ Canlı seyir parkurundaki **Komite · starboard** düğmesine komite ucundayken,
 
 Start hattı, hedef yarış şamandırasından ayrı saklanır ve uygulama yeniden açıldığında korunur. İki uç aynı konumda olamaz; yerel çizim için araları 1 m ile 10 km arasında olmalıdır. Hat şematiktir; start zamanı, hat tarafı veya yarış kuralı kararı üretmez.
 
+## Sesli komut ve iPhone ses tuşları
+
+Seyir ekranındaki mikrofon düğmesine basıp Türkçe **“Rüzgâr açtı”**, **“Rüzgâr kafaladı”**, **“Layline'dayız”**, **“Durum”**, **“Komite pin”** veya **“Port pin”** deyin; düğmeye tekrar basmak dinlemeyi bitirir. Aynı ifadeler yanındaki yazı alanına da girilebilir. Uygulama mevcut karar modeli ve güncel NMEA ölçümlerine göre yazılı, hareketli görsel ve Türkçe sesli yanıt verir. Kullanıcının rüzgâr bildirimi sensör verisini değiştirmez; eksik veya eski canlı ölçümde manevra kararı üretmez. Mikrofon yalnız düğmeye basıldığında açılır ve ses kaydı depoda saklanmaz. Türkçe tanıma cihazda desteklenirse cihaz içi yol seçilir; desteklenmezse Apple'ın konuşma tanıma hizmeti kullanılır ve iOS izin ister. Yazılı komut mikrofon izni gerektirmez.
+
+Canlı seyirde iPhone üzerindeki **Tekne bağlantısı → Start hattı → Ses tuşlarıyla start pini** anahtarını açınca ses seviyesinin artışı komite/starboard, azalışı şamandıra/port pinini alır. iOS uygulamaya fiziksel tuş basışını ayrı bir olay olarak vermez; kısayol ses düzeyi değişimini gözler. Ses seviyesi de değişir, en yüksek/en düşük düzeyde yeni değişim algılanmaz ve Kontrol Merkezi gibi başka ses değişimleri de pin tetikleyebilir. Kısayol yalnız ön plandaki canlı iPhone seyir sayfasında çalışır; parkurdaki ekran düğmeleri her zaman kullanılabilir. Fiziksel iPhone'da tuş davranışı henüz saha koşullarında doğrulanmadı.
+
 Tüm sensör verileri cihazda işlenir; ham telemetri sunucuya yüklenmez. Kullanıcının kendi seçimiyle paylaşacağı karar notu ayrı bir dışa aktarma eylemidir. Arka planda kesintisiz kayıt veya otomatik yeniden bağlanma garantisi yoktur; uygulamaya dönüldüğünde güncellik yeniden kontrol edilmelidir.
 
 ## Yerel sentetik yayıncı

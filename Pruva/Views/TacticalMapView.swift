@@ -227,11 +227,11 @@ struct TacticalMapView: View {
 
     private func drawStartPin(context: inout GraphicsContext, point: CGPoint, color: Color,
                               label: String, labelOffset: CGFloat, labelX: CGFloat? = nil) {
-        let halo = Path(ellipseIn: CGRect(x: point.x - 11, y: point.y - 11, width: 22, height: 22))
-        context.fill(halo, with: .color(color.opacity(0.18)))
-        let pin = Path(ellipseIn: CGRect(x: point.x - 5, y: point.y - 5, width: 10, height: 10))
+        let halo = Path(ellipseIn: CGRect(x: point.x - 15, y: point.y - 15, width: 30, height: 30))
+        context.fill(halo, with: .color(color.opacity(0.23)))
+        let pin = Path(ellipseIn: CGRect(x: point.x - 7, y: point.y - 7, width: 14, height: 14))
         context.fill(pin, with: .color(color))
-        context.stroke(pin, with: .color(Palette.background), lineWidth: 1.5)
+        context.stroke(pin, with: .color(.white), lineWidth: 2)
         drawPill(text: label, at: CGPoint(x: labelX ?? point.x, y: point.y + labelOffset), context: &context)
     }
 
@@ -410,18 +410,20 @@ struct TacticalMapView: View {
     }
 
     private func drawMark(context: inout GraphicsContext, point: CGPoint) {
-        let halo = Path(ellipseIn: CGRect(x: point.x - 19, y: point.y - 19, width: 38, height: 38))
-        context.fill(halo, with: .color(MapPalette.gold.opacity(0.1)))
-        let buoy = Path(ellipseIn: CGRect(x: point.x - 9, y: point.y - 9, width: 18, height: 18))
+        let halo = Path(ellipseIn: CGRect(x: point.x - 28, y: point.y - 28, width: 56, height: 56))
+        context.fill(halo, with: .color(MapPalette.gold.opacity(0.17)))
+        let ring = Path(ellipseIn: CGRect(x: point.x - 18, y: point.y - 18, width: 36, height: 36))
+        context.stroke(ring, with: .color(MapPalette.gold.opacity(0.75)), lineWidth: 2)
+        let buoy = Path(ellipseIn: CGRect(x: point.x - 12, y: point.y - 12, width: 24, height: 24))
         context.fill(buoy, with: .color(MapPalette.gold))
-        context.stroke(buoy, with: .color(.white), lineWidth: 2.5)
+        context.stroke(buoy, with: .color(.white), lineWidth: 3)
         context.draw(
-            Text(isDownwind ? "2" : "1").font(.system(size: 9, weight: .bold)).foregroundColor(.white),
+            Text(isDownwind ? "2" : "1").font(.system(size: 11, weight: .bold)).foregroundColor(.white),
             at: point
         )
         drawPill(
             text: isDownwind ? "ALT ŞAMANDIRA" : "ÜST ŞAMANDIRA",
-            at: CGPoint(x: point.x, y: point.y - 30),
+            at: CGPoint(x: point.x, y: point.y - 39),
             context: &context
         )
     }

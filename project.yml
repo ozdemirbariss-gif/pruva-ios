@@ -31,6 +31,8 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: Pruva teknenizin Wi-Fi ağındaki NMEA cihazından GPS konumu, hız ve rüzgâr ölçümlerini almak için yerel ağa bağlanır.
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Pruva yalnız sesli komut düğmesine bastığınızda Türkçe komutunuzu dinler.
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Pruva sesli yarış bildirimlerinizi yazıya çevirmek ve karar desteği sunmak için konuşma tanıma kullanır.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   PruvaUITests:
     type: bundle.ui-testing
