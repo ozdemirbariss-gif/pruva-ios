@@ -2,7 +2,7 @@
 
 **Rotayı gör. Doğru anda karar ver.**
 
-iPhone ve iPad için yerel SwiftUI yarış karar asistanı. Taktisyen ve navigatörün rüzgâr, layline, kontra payı ve manevra maliyetini aynı görsel üzerinden değerlendirmesi için tasarlandı. Yumuşak beyaz, deniz yeşili, koyu arduvaz ve küçük altın vurgular.
+iPhone ve iPad için yerel SwiftUI yarış karar asistanı. Taktisyen ve navigatörün rüzgâr, layline, kontra payı ve manevra maliyetini aynı görsel üzerinden değerlendirmesi için tasarlandı. Lacivert cihaz ekranı, açık mavi rota çizgileri ve tek aralıklı ölçüm yazıları kullanır.
 
 Uygulama **çevrimdışı simülasyon / manuel karar laboratuvarı** ile **Wi-Fi NMEA 0183 veri alımı** sunar. TCP istemcisi veya UDP unicast üzerinden teknenin GPS, heading, suya göre hız ve rüzgâr verileri cihazda işlenir. Canlı öneri için gerekli güncel ölçümler ve gerçek şamandıra gerekir; eksik/eski veri öneri üretmez. Gerçek tekne bağlantısı henüz sahada doğrulanmadı. [Bağlantı kurulumu ve test akışı](docs/LIVE_DATA.md).
 

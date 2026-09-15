@@ -27,7 +27,7 @@ struct LogbookView: View {
                             Surface {
                                 VStack(alignment: .leading, spacing: 13) {
                                     HStack {
-                                        Text(entry.date.formatted(date: .abbreviated, time: .shortened)).font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                                        Text(journalDate(entry.date)).font(.system(size: 10)).foregroundStyle(Palette.secondary)
                                         Spacer()
                                         Image(systemName: "arrow.up.right").foregroundStyle(Palette.teal)
                                     }
@@ -74,7 +74,7 @@ struct DecisionDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Eyebrow(text: entry.date.formatted(date: .abbreviated, time: .shortened))
+                    Eyebrow(text: journalDate(entry.date))
                     if let context = entry.liveContext {
                         Text("Tekne NMEA kaydı · SOG \(decimal(context.speedOverGround)) kn · \(context.windSource)")
                             .font(.system(size: 11)).foregroundStyle(Palette.teal)

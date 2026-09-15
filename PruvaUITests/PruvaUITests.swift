@@ -3,7 +3,7 @@ import XCTest
 final class PruvaUITests: XCTestCase {
     @MainActor func testScenarioAndDecisionJournal() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitesting"]
+        app.launchArguments = ["--uitesting", "-AppleLanguages", "(tr)", "-AppleLocale", "tr_TR"]
         app.launch()
         XCTAssertTrue(app.buttons["Parkur seç"].waitForExistence(timeout: 10))
         let overview = XCTAttachment(screenshot: app.screenshot())
@@ -15,6 +15,10 @@ final class PruvaUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["SENARYO SEÇ"].exists)
         app.buttons["scenario-persistentHeader"].tap()
         XCTAssertTrue(app.staticTexts["scenario-decision"].exists)
+        let scenario = XCTAttachment(screenshot: app.screenshot())
+        scenario.name = "Scenario overview"
+        scenario.lifetime = .keepAlways
+        add(scenario)
         app.buttons["tab-Seyir"].tap()
         for _ in 0..<6 {
             if app.buttons["save-decision"].isHittable { break }

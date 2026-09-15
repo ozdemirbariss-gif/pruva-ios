@@ -62,6 +62,9 @@ struct ActionButton: View {
 
 func degrees(_ value: Double) -> String { String(format: "%03.0f°", (value.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)) }
 func decimal(_ value: Double) -> String { String(format: "%.1f", value) }
+func journalDate(_ date: Date) -> String {
+    date.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(Locale(identifier: "tr_TR")))
+}
 func duration(_ seconds: Double?) -> String {
     guard let seconds, seconds.isFinite, seconds >= 0 else { return "—" }
     if seconds < 60 { return "\(Int(seconds)) sn" }
