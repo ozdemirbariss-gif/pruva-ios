@@ -8,7 +8,7 @@ struct PruvaApp: App {
         WindowGroup {
             RootView()
                 .environment(store)
-                .preferredColorScheme(.light)
+                .preferredColorScheme(.dark)
                 .tint(Palette.teal)
         }
     }

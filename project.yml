@@ -30,11 +30,21 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: Pruva teknenizin Wi-Fi ağındaki NMEA cihazından GPS konumu, hız ve rüzgâr ölçümlerini almak için yerel ağa bağlanır.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   PruvaUITests:
     type: bundle.ui-testing
     platform: iOS
     sources: [PruvaUITests]
+    dependencies:
+      - target: Pruva
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+  PruvaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [PruvaTests]
     dependencies:
       - target: Pruva
     settings:
@@ -46,4 +56,4 @@ schemes:
       targets:
         Pruva: all
     test:
-      targets: [PruvaUITests]
+      targets: [PruvaTests, PruvaUITests]

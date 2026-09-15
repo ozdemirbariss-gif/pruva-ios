@@ -8,12 +8,7 @@ struct ScenarioView: View {
         @Bindable var store = store
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                VStack(alignment: .leading, spacing: 7) {
-                    Eyebrow(text: "Taktik laboratuvarı")
-                    Text("Ya rüzgâr dönerse?").font(.system(size: 30, weight: .regular, design: .serif))
-                    Text("Bir değişkeni değiştir. Kararın neden değiştiğini gör.")
-                        .font(.system(size: 13)).foregroundStyle(Palette.secondary)
-                }
+                Eyebrow(text: "Senaryo seç")
                 ScrollView(.horizontal) {
                     HStack(spacing: 12) {
                         ForEach(Array(DemoScenario.allCases.enumerated()), id: \.element.id) { index, scenario in
@@ -24,11 +19,11 @@ struct ScenarioView: View {
                                         Spacer()
                                         Image(systemName: store.scenarioName == scenario.title ? "checkmark.circle.fill" : "arrow.up.right")
                                     }.foregroundStyle(Palette.teal)
-                                    Text(scenario.title).font(.system(size: 17, weight: .medium, design: .serif)).foregroundStyle(Palette.ink)
+                                    Text(scenario.title).font(.system(size: 17, weight: .semibold)).foregroundStyle(Palette.ink)
                                         .frame(minHeight: 42, alignment: .topLeading)
-                                    Text(scenario.subtitle).font(.system(size: 11)).foregroundStyle(Palette.secondary).lineLimit(3)
-                                }.padding(18).frame(width: 215, height: 172, alignment: .topLeading)
-                                    .background(store.scenarioName == scenario.title ? Palette.seafoam : .white, in: RoundedRectangle(cornerRadius: 22))
+                                }.padding(18).frame(width: 190, height: 112, alignment: .topLeading)
+                                    .background(store.scenarioName == scenario.title ? Palette.seafoam : Palette.surface, in: RoundedRectangle(cornerRadius: 14))
+                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(store.scenarioName == scenario.title ? Palette.teal : Palette.line, lineWidth: 1))
                             }.buttonStyle(.plain).accessibilityIdentifier("scenario-\(scenario.rawValue)")
                         }
                     }
@@ -39,15 +34,13 @@ struct ScenarioView: View {
                         Eyebrow(text: "Karar şimdi")
                         Text("Şamandıra · \(Int(store.analysis.distanceToMark)) m")
                             .font(.system(size: 11)).foregroundStyle(Palette.secondary).accessibilityIdentifier("scenario-distance")
-                        Text(store.analysis.title).font(.system(size: 23, weight: .medium, design: .serif)).accessibilityIdentifier("scenario-decision")
+                        Text(store.analysis.title).font(.system(size: 23, weight: .semibold)).accessibilityIdentifier("scenario-decision")
                         Text(store.analysis.message).font(.system(size: 13)).foregroundStyle(Palette.secondary).lineSpacing(3)
                         HStack {
                             comparisonMetric("TAHMİNİ KAZANÇ", value: store.analysis.expectedGainSeconds)
                             Spacer()
                             comparisonMetric("MANEVRA MALİYETİ", value: store.analysis.costSeconds)
                         }
-                        Text("Kazanç, varsaydığınız shift süresindeki brüt avantajdır. Ölçüm veya hava tahmini değildir.")
-                            .font(.system(size: 10)).foregroundStyle(Palette.secondary)
                     }
                 }
 
@@ -72,8 +65,6 @@ struct ScenarioView: View {
                         control("Gerçek rüzgâr hızı", value: $store.input.windSpeed, range: 3...35, unit: "kn")
                         control("Tekne hızı · suya göre", value: $store.input.boatSpeed, range: 1...20, unit: "kn")
                         control("Hedef gerçek rüzgâr açısı", value: $store.input.targetAngle, range: store.input.leg == .upwind ? 30...65 : 110...175, unit: "°", step: 1)
-                        Text("Tekne hızı ve hedef açı bağımsız girdilerdir. Rüzgâr hızından otomatik polar türetilmez.")
-                            .font(.system(size: 10)).foregroundStyle(Palette.secondary)
                     }
                 }
                 Surface {
@@ -94,7 +85,6 @@ struct ScenarioView: View {
                         Eyebrow(text: "Akıntı · yer vektörü")
                         control("Doğu (+) / Batı (−)", value: $store.input.currentEast, range: -3...3, unit: "kn")
                         control("Kuzey (+) / Güney (−)", value: $store.input.currentNorth, range: -3...3, unit: "kn")
-                        Text("Akıntı pruvayı değil, yerdeki rotayı ve layline'ı değiştirir.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
                     }
                 }
                 ActionButton(title: "Bu senaryoyu kaydet", icon: "bookmark") { store.saveDecision(note: "Taktik laboratuvarından kaydedildi.") }
@@ -107,7 +97,7 @@ struct ScenarioView: View {
     private func comparisonMetric(_ label: String, value: Double) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(label).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Palette.secondary)
-            Text("\(decimal(value)) sn").font(.system(size: 24, weight: .medium, design: .rounded)).foregroundStyle(Palette.teal)
+            Text("\(decimal(value)) sn").font(.system(size: 24, weight: .semibold, design: .monospaced)).foregroundStyle(Palette.teal)
         }
     }
 
@@ -117,7 +107,7 @@ struct ScenarioView: View {
                 Text(title).font(.system(size: 13)).foregroundStyle(Palette.ink)
                 Spacer()
                 Text("\(step >= 1 ? String(format: "%.0f", value.wrappedValue) : decimal(value.wrappedValue)) \(unit)")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded)).monospacedDigit().foregroundStyle(Palette.teal)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced)).monospacedDigit().foregroundStyle(Palette.teal)
             }
             Slider(value: value, in: range, step: step).accessibilityLabel(title)
         }

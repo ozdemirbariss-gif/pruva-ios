@@ -1,13 +1,14 @@
 import SwiftUI
 
 enum Palette {
-    static let background = Color(red: 0.966, green: 0.974, blue: 0.973)
-    static let ink = Color(red: 0.09, green: 0.18, blue: 0.22)
-    static let secondary = Color(red: 0.43, green: 0.50, blue: 0.53)
-    static let teal = Color(red: 0.14, green: 0.47, blue: 0.46)
-    static let seafoam = Color(red: 0.89, green: 0.95, blue: 0.93)
-    static let line = Color(red: 0.89, green: 0.92, blue: 0.92)
-    static let gold = Color(red: 0.69, green: 0.50, blue: 0.24)
+    static let background = Color(red: 0.035, green: 0.075, blue: 0.135)
+    static let surface = Color(red: 0.075, green: 0.145, blue: 0.235)
+    static let ink = Color(red: 0.94, green: 0.97, blue: 1.0)
+    static let secondary = Color(red: 0.61, green: 0.72, blue: 0.84)
+    static let teal = Color(red: 0.39, green: 0.69, blue: 0.94)
+    static let seafoam = Color(red: 0.11, green: 0.22, blue: 0.36)
+    static let line = Color(red: 0.22, green: 0.34, blue: 0.48)
+    static let gold = Color(red: 0.83, green: 0.72, blue: 0.48)
 }
 
 struct Surface<Content: View>: View {
@@ -15,16 +16,16 @@ struct Surface<Content: View>: View {
     @ViewBuilder var content: () -> Content
     var body: some View {
         content().padding(padding)
-            .background(.white, in: RoundedRectangle(cornerRadius: 24))
-            .overlay(RoundedRectangle(cornerRadius: 24).stroke(Palette.line.opacity(0.7), lineWidth: 1))
+            .background(Palette.surface, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Palette.line.opacity(0.7), lineWidth: 1))
     }
 }
 
 struct Eyebrow: View {
     let text: String
     var body: some View {
-        Text(text.uppercased()).font(.system(size: 10, weight: .semibold, design: .rounded))
-            .tracking(1.7).foregroundStyle(Palette.secondary)
+        Text(text.uppercased()).font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .tracking(1).foregroundStyle(Palette.secondary)
     }
 }
 
@@ -36,7 +37,7 @@ struct Metric: View {
         VStack(alignment: .leading, spacing: 7) {
             Eyebrow(text: label)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(value).font(.system(size: 27, weight: .medium, design: .rounded)).monospacedDigit()
+                Text(value).font(.system(size: 27, weight: .semibold, design: .monospaced)).monospacedDigit()
                     .contentTransition(.numericText())
                 Text(unit).font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.secondary)
             }.foregroundStyle(Palette.ink)
@@ -51,10 +52,10 @@ struct ActionButton: View {
     var action: () -> Void
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: icon).font(.system(size: 14, weight: .semibold))
+            Label(title, systemImage: icon).font(.system(size: 14, weight: .semibold, design: .default))
                 .frame(maxWidth: .infinity).padding(.vertical, 15)
-                .background(filled ? Palette.teal : Palette.seafoam, in: RoundedRectangle(cornerRadius: 15))
-                .foregroundStyle(filled ? .white : Palette.teal)
+                .background(filled ? Palette.teal : Palette.seafoam, in: RoundedRectangle(cornerRadius: 12))
+                .foregroundStyle(filled ? Palette.background : Palette.teal)
         }.buttonStyle(.plain)
     }
 }

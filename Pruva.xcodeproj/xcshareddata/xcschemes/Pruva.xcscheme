@@ -44,6 +44,17 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A5AF47DCCF2507828A31304D"
+               BuildableName = "PruvaTests.xctest"
+               BlueprintName = "PruvaTests"
+               ReferencedContainer = "container:Pruva.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "E3BDC34B497D180B7717238E"
                BuildableName = "PruvaUITests.xctest"
                BlueprintName = "PruvaUITests"

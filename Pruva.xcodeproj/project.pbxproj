@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		060B30AD5A926B50D394A424 /* BoatConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */; };
 		10CF1DFC9BFC0989FD5B4703 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF34139F66B61F901B93ED63 /* DesignSystem.swift */; };
 		205E093C7AAE14C9A3C83299 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */; };
 		4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3848EE58F61E7F185DD04D82 /* ScenarioView.swift */; };
+		53B1E3E91AA5A334F12E5187 /* NMEAConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */; };
 		60E6AEB69E27FDF28EB6673E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01DAFDA1DC9F2F512E277124 /* Assets.xcassets */; };
 		6A52C2626FB4EB89FC25EB98 /* RaceCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0F2292C8F81E5F3A7142706C /* RaceCore */; };
 		7F61D8EFDFB03FCE2BF69C02 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B74E1272501AF07D9066714 /* RootView.swift */; };
@@ -22,6 +24,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1237603D7C9B505F34A9A283 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3C6538E55284B59E0C25CAB0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 686A49393495C08FC7065662;
+			remoteInfo = Pruva;
+		};
 		66341EDF0A047861B0134FD7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3C6538E55284B59E0C25CAB0 /* Project object */;
@@ -41,11 +50,14 @@
 		6EFAD6ECC34ED9CF83017530 /* PruvaUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PruvaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		79245FF1BE52AF8FBD6C29F8 /* TacticalMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TacticalMapView.swift; sourceTree = "<group>"; };
 		7F17568A9649C3C3E915600A /* Pruva.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pruva.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NMEAConnection.swift; sourceTree = "<group>"; };
 		A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PruvaApp.swift; sourceTree = "<group>"; };
 		BF39981454632F6692215E9C /* SailingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingView.swift; sourceTree = "<group>"; };
+		CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoatConnectionView.swift; sourceTree = "<group>"; };
 		DF34139F66B61F901B93ED63 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStore.swift; sourceTree = "<group>"; };
 		EDE5F6348321C2C77552F2BA /* Navigatör Yardımcısı */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Navigatör Yardımcısı"; path = .; sourceTree = SOURCE_ROOT; };
+		FD47E83F130DC16E800669B8 /* PruvaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PruvaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +85,7 @@
 			children = (
 				448F6825BF38E2C559598020 /* App */,
 				20098B0D842ECB3FA0FA6C3D /* Resources */,
+				60AF10DD12B53D17DBAA395D /* Services */,
 				7FC5EED0EC2CCFAC889BE3EB /* Views */,
 			);
 			path = Pruva;
@@ -108,14 +121,24 @@
 			isa = PBXGroup;
 			children = (
 				7F17568A9649C3C3E915600A /* Pruva.app */,
+				FD47E83F130DC16E800669B8 /* PruvaTests.xctest */,
 				6EFAD6ECC34ED9CF83017530 /* PruvaUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		60AF10DD12B53D17DBAA395D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		7FC5EED0EC2CCFAC889BE3EB /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */,
 				DF34139F66B61F901B93ED63 /* DesignSystem.swift */,
 				32A3DDEFC18493918CEDA250 /* LogbookView.swift */,
 				6B74E1272501AF07D9066714 /* RootView.swift */,
@@ -126,11 +149,19 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		9DA59CAADA44ABD2EEBDC63B /* PruvaTests */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = PruvaTests;
+			sourceTree = "<group>";
+		};
 		F7D1B10F91F4173F70CAA3ED = {
 			isa = PBXGroup;
 			children = (
 				0EBC87B9863977C086B1430D /* Packages */,
 				1184D44D942843DD6833C01A /* Pruva */,
+				9DA59CAADA44ABD2EEBDC63B /* PruvaTests */,
 				1FFDCFDC0BD68B40BE3EAB1B /* PruvaUITests */,
 				4B84F1AFCFF853EE366EC917 /* Products */,
 			);
@@ -158,6 +189,24 @@
 			productName = Pruva;
 			productReference = 7F17568A9649C3C3E915600A /* Pruva.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A5AF47DCCF2507828A31304D /* PruvaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4DD7318569B7D62A73F2A6B9 /* Build configuration list for PBXNativeTarget "PruvaTests" */;
+			buildPhases = (
+				5E937BADE6950E5C6A70789E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				139F5CF0BC1000AB673138A5 /* PBXTargetDependency */,
+			);
+			name = PruvaTests;
+			packageProductDependencies = (
+			);
+			productName = PruvaTests;
+			productReference = FD47E83F130DC16E800669B8 /* PruvaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		E3BDC34B497D180B7717238E /* PruvaUITests */ = {
 			isa = PBXNativeTarget;
@@ -209,6 +258,7 @@
 			projectRoot = "";
 			targets = (
 				686A49393495C08FC7065662 /* Pruva */,
+				A5AF47DCCF2507828A31304D /* PruvaTests */,
 				E3BDC34B497D180B7717238E /* PruvaUITests */,
 			);
 		};
@@ -231,14 +281,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				060B30AD5A926B50D394A424 /* BoatConnectionView.swift in Sources */,
 				10CF1DFC9BFC0989FD5B4703 /* DesignSystem.swift in Sources */,
 				8A8C4B0F4A4EF21DE12A694F /* LogbookView.swift in Sources */,
+				53B1E3E91AA5A334F12E5187 /* NMEAConnection.swift in Sources */,
 				AC163AEF771F3F92B450601D /* PruvaApp.swift in Sources */,
 				8104FB6366D1774022C6CF81 /* RaceStore.swift in Sources */,
 				7F61D8EFDFB03FCE2BF69C02 /* RootView.swift in Sources */,
 				87A139360615EB51051C5AC0 /* SailingView.swift in Sources */,
 				4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */,
 				DB0E7152732BE74E6C0EFCD9 /* TacticalMapView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5E937BADE6950E5C6A70789E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +312,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		139F5CF0BC1000AB673138A5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 686A49393495C08FC7065662 /* Pruva */;
+			targetProxy = 1237603D7C9B505F34A9A283 /* PBXContainerItemProxy */;
+		};
 		D70045264349A6E8A38E6E34 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 686A49393495C08FC7065662 /* Pruva */;
@@ -352,6 +416,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Pruva;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Pruva teknenizin Wi-Fi ağındaki NMEA cihazından GPS konumu, hız ve rüzgâr ölçümlerini almak için yerel ağa bağlanır.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -380,6 +445,40 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = Pruva;
+			};
+			name = Release;
+		};
+		527A3C52543B3F37883A8238 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pruva.PruvaTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pruva.app/Pruva";
+			};
+			name = Debug;
+		};
+		AFC90FD941754A21A07DB0E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pruva.PruvaTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pruva.app/Pruva";
 			};
 			name = Release;
 		};
@@ -450,6 +549,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Pruva;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Pruva teknenizin Wi-Fi ağındaki NMEA cihazından GPS konumu, hız ve rüzgâr ölçümlerini almak için yerel ağa bağlanır.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -472,6 +572,15 @@
 			buildConfigurations = (
 				06EBE2E8D6BB5FA9915B074D /* Debug */,
 				D82CC0D969F06092303A43B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4DD7318569B7D62A73F2A6B9 /* Build configuration list for PBXNativeTarget "PruvaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				527A3C52543B3F37883A8238 /* Debug */,
+				AFC90FD941754A21A07DB0E3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

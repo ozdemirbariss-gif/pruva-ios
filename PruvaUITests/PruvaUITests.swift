@@ -5,14 +5,14 @@ final class PruvaUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["Bir sonraki hamleyi gör."].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Parkur seç"].waitForExistence(timeout: 10))
         let overview = XCTAttachment(screenshot: app.screenshot())
         overview.name = "Tactician overview"
         overview.lifetime = .keepAlways
         add(overview)
         XCTAssertTrue(app.buttons["tab-Senaryolar"].exists)
         app.buttons["tab-Senaryolar"].tap()
-        XCTAssertTrue(app.staticTexts["Ya rüzgâr dönerse?"].exists)
+        XCTAssertTrue(app.staticTexts["SENARYO SEÇ"].exists)
         app.buttons["scenario-persistentHeader"].tap()
         XCTAssertTrue(app.staticTexts["scenario-decision"].exists)
         app.buttons["tab-Seyir"].tap()
@@ -23,7 +23,7 @@ final class PruvaUITests: XCTestCase {
         XCTAssertTrue(app.buttons["save-decision"].isHittable)
         app.buttons["save-decision"].tap()
         app.buttons["tab-Seyir defteri"].tap()
-        XCTAssertTrue(app.staticTexts["1 kayıt · Bu cihazda saklanır"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["1 KAYIT"].waitForExistence(timeout: 3))
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = "Decision journal"
         shot.lifetime = .keepAlways

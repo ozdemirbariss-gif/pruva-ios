@@ -14,6 +14,14 @@ struct SailingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     title
+                    if store.isLiveMode {
+                        HStack(spacing: 7) {
+                            Image(systemName: "antenna.radiowaves.left.and.right")
+                            Text(store.freshPosition.map { String(format: "GPS  %.5f, %.5f", $0.value.latitude, $0.value.longitude) } ?? "GPS konumu bekleniyor")
+                                .monospacedDigit()
+                            Spacer()
+                        }.font(.system(size: 11)).foregroundStyle(store.freshPosition == nil ? Palette.gold : Palette.teal)
+                    }
                     if proxy.size.width > 760 {
                         HStack(alignment: .top, spacing: 22) {
                             VStack(spacing: 18) { instruments; map(height: 480); windCard }.frame(maxWidth: .infinity)
@@ -27,8 +35,6 @@ struct SailingView: View {
                         navigatorCard
                         saveCard
                     }
-                    Text("Şematik parkur · Manuel veriler · Gerçek zamanlı sensör bağlantısı yok")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondary).frame(maxWidth: .infinity)
                 }.padding(.horizontal, 22).padding(.top, 10).padding(.bottom, 26)
                     .frame(maxWidth: 1200).frame(maxWidth: .infinity)
             }.scrollIndicators(.hidden)
@@ -50,31 +56,22 @@ struct SailingView: View {
     }
 
     private var title: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                VStack(alignment: .leading, spacing: 5) {
-                    Eyebrow(text: "Yarış karar asistanı")
-                    Text("Bir sonraki hamleyi gör.")
-                        .font(.system(size: 27, weight: .regular, design: .serif)).tracking(-0.6)
-                        .minimumScaleFactor(0.85).lineLimit(1)
-                }
-                Spacer(minLength: 0)
-            }
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Button { showPresets = true } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "flag.checkered").font(.system(size: 12))
                         Text(store.input.leg == .upwind ? "Orsa · Şamandıra 1" : "Pupa · Şamandıra 2").font(.system(size: 12, weight: .medium))
                         Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
-                    }.foregroundStyle(Palette.secondary)
-                }.accessibilityLabel("Parkur seç")
+                    }.foregroundStyle(Palette.teal)
+                }.accessibilityLabel("Parkur seç").disabled(store.isLiveMode)
                 Spacer()
                 HStack(spacing: 0) {
                     ForEach(CrewRole.allCases, id: \.self) { role in
                         Button { store.role = role } label: {
                             Text(role.rawValue).font(.system(size: 10, weight: .semibold))
                                 .padding(.horizontal, 10).padding(.vertical, 9)
-                                .background(store.role == role ? .white : .clear, in: Capsule())
+                                .background(store.role == role ? Palette.seafoam : .clear, in: Capsule())
                                 .foregroundStyle(store.role == role ? Palette.ink : Palette.secondary)
                         }.buttonStyle(.plain)
                     }
@@ -86,11 +83,11 @@ struct SailingView: View {
     private var instruments: some View {
         Surface(padding: 18) {
             HStack(spacing: 14) {
-                Metric(label: "Gerçek rüzgâr", value: decimal(store.input.windSpeed), unit: "kn")
+                Metric(label: "Gerçek rüzgâr", value: store.isLiveMode ? store.liveWind.map { decimal($0.value.speed) } ?? "—" : decimal(store.input.windSpeed), unit: "kn")
                 Rectangle().fill(Palette.line).frame(width: 1, height: 36)
-                Metric(label: "Rüzgâr yönü", value: degrees(store.input.windDirection), unit: "")
+                Metric(label: "Rüzgâr yönü", value: store.isLiveMode ? store.liveWind.map { degrees($0.value.direction) } ?? "—" : degrees(store.input.windDirection), unit: "")
                 Rectangle().fill(Palette.line).frame(width: 1, height: 36)
-                Metric(label: store.role == .tactician ? "VMG · rüzgâr" : "VMC · hedef", value: decimal(store.role == .tactician ? store.analysis.vmg : store.analysis.vmc), unit: "kn")
+                Metric(label: store.isLiveMode ? "GPS · SOG" : (store.role == .tactician ? "VMG · rüzgâr" : "VMC · hedef"), value: store.isLiveMode ? store.freshSOG.map { decimal($0.value) } ?? "—" : decimal(store.role == .tactician ? store.analysis.vmg : store.analysis.vmc), unit: "kn")
             }
         }
     }
@@ -99,8 +96,8 @@ struct SailingView: View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Parkur görünümü").font(.system(size: 15, weight: .semibold))
-                    Text("\(store.scenarioName) · Şematik").font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                    Text("PARKUR").font(.system(size: 11, weight: .bold, design: .monospaced)).tracking(1)
+                    Text(store.isLiveMode ? "NMEA" : store.scenarioName).font(.system(size: 10)).foregroundStyle(Palette.secondary)
                 }
                 Spacer()
                 Button { showLayers = true } label: {
@@ -116,26 +113,44 @@ struct SailingView: View {
                 isStarboard: store.input.tack == .starboard,
                 currentEast: store.input.currentEast, currentNorth: store.input.currentNorth,
                 boatSpeed: store.input.boatSpeed, uncertainty: store.input.windUncertainty,
-                showLaylines: store.showLaylines, showTrail: store.showTrail,
+                showLaylines: store.showLaylines && (!store.isLiveMode || store.liveReadinessMessage == nil), showTrail: store.showTrail,
                 onBoatMove: { point in
+                    guard !store.isLiveMode else { return }
                     store.isPlaying = false
                     store.input.boatPosition = Point(east: point.x, north: point.y)
                     store.savedFeedback = false
                     store.persist()
-                }
+                }, measuredHeading: store.measuredBoatHeading,
+                windSpeed: store.isLiveMode ? store.liveWind?.value.speed : store.input.windSpeed,
+                sensorMode: store.isLiveMode, windAvailable: !store.isLiveMode || store.liveWind != nil,
+                boatAvailable: !store.isLiveMode || store.freshPosition != nil,
+                showMark: !store.isLiveMode || store.markCoordinate != nil
             ).frame(height: height)
-            HStack(spacing: 5) {
-                Image(systemName: "hand.tap").font(.system(size: 10))
-                Text("Tekneyi taşımak için parkura dokun").font(.system(size: 10))
+                .id("\(store.isLiveMode)-\(store.markCoordinate?.latitude ?? 0)-\(store.markCoordinate?.longitude ?? 0)")
+            HStack {
+                Text(store.isLiveMode ? "GPS KONUMU" : "DOKUN · TEKNEYİ TAŞI")
                 Spacer()
-                Text("±\(Int(store.input.windUncertainty))° bant").font(.system(size: 10, weight: .medium))
-            }.foregroundStyle(Palette.secondary).padding(.horizontal, 18).padding(.vertical, 12)
-        }.background(.white, in: RoundedRectangle(cornerRadius: 24))
-            .overlay(RoundedRectangle(cornerRadius: 24).stroke(Palette.line, lineWidth: 1))
-            .clipShape(RoundedRectangle(cornerRadius: 24))
+                Text("±\(Int(store.input.windUncertainty))°")
+            }.font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(Palette.secondary).padding(.horizontal, 18).padding(.vertical, 10)
+        }.background(Palette.surface, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Palette.line, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private var decision: some View {
+    @ViewBuilder private var decision: some View {
+        if store.isLiveMode, let reason = store.liveReadinessMessage {
+            Surface {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("Veri bekleniyor", systemImage: "antenna.radiowaves.left.and.right.slash")
+                        .font(.system(size: 18, weight: .semibold))
+                    Text(reason).font(.system(size: 13)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+        } else { decisionContent }
+    }
+
+    private var decisionContent: some View {
         let a = store.analysis
         let isHold = a.recommendation == .hold
         return VStack(alignment: .leading, spacing: 15) {
@@ -147,7 +162,7 @@ struct SailingView: View {
                 Spacer()
                 Text("Model güveni: \(a.confidence.lowercased())").font(.system(size: 10)).foregroundStyle(Palette.secondary)
             }
-            Text(a.title).font(.system(size: 25, weight: .medium, design: .serif)).accessibilityIdentifier("decision-title")
+            Text(a.title).font(.system(size: 23, weight: .semibold)).accessibilityIdentifier("decision-title")
             Text(store.role == .tactician ? a.message : navigatorMessage).font(.system(size: 13)).lineSpacing(4).foregroundStyle(Palette.ink.opacity(0.8))
             Rectangle().fill(Palette.teal.opacity(0.14)).frame(height: 1)
             HStack(alignment: .top, spacing: 9) {
@@ -172,12 +187,15 @@ struct SailingView: View {
                     .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.teal)
             }
         }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.seafoam.opacity(0.8), in: RoundedRectangle(cornerRadius: 24))
-            .overlay(RoundedRectangle(cornerRadius: 24).stroke(Palette.teal.opacity(0.12), lineWidth: 1))
+            .background(Palette.seafoam, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Palette.line, lineWidth: 1))
     }
 
     private var navigatorMessage: String {
         let a = store.analysis
+        if store.isLiveMode {
+            return "Hedefe \(Int(a.distanceToMark)) m. GPS rotası \(store.freshCOG.map { degrees($0.value) } ?? "—"), gerçek pruva \(store.freshHeading.map { degrees($0.value) } ?? "—"). Layline ve kalan süre ölçülen STW ile hedef seyir açısına göre modellenir."
+        }
         return "Hedefe \(Int(a.distanceToMark)) m. Yerdeki rota \(degrees(a.cog)), pruva \(degrees(a.heading)). \(a.isOverstood ? "Layline dışında; direkt yaklaşma açısını kontrol edin." : "Mevcut kontra payı \(duration(a.currentTackSeconds)), diğer kontra \(duration(a.otherTackSeconds)).")"
     }
 
@@ -186,17 +204,16 @@ struct SailingView: View {
             VStack(alignment: .leading, spacing: 15) {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
-                        Eyebrow(text: "Rüzgârın ritmi")
+                        Eyebrow(text: "Rüzgâr sapması")
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text(String(format: "%+.0f°", store.relativeWind)).font(.system(size: 27, weight: .medium, design: .rounded))
-                            Text("ortalamaya göre").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                            Text(String(format: "%+.0f°", store.relativeWind)).font(.system(size: 27, weight: .semibold, design: .monospaced))
                         }
                     }
                     Spacer()
                     Button { store.togglePlayback() } label: {
                         Image(systemName: store.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 13))
                             .frame(width: 42, height: 42).background(Palette.seafoam, in: Circle())
-                    }.accessibilityLabel(store.isPlaying ? "Simülasyonu duraklat" : "Rüzgâr simülasyonunu oynat")
+                    }.accessibilityLabel(store.isPlaying ? "Simülasyonu duraklat" : "Rüzgâr simülasyonunu oynat").disabled(store.isLiveMode)
                 }
                 Chart {
                     RuleMark(y: .value("Ortalama", 0)).lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 4])).foregroundStyle(Palette.secondary.opacity(0.45))
@@ -216,24 +233,30 @@ struct SailingView: View {
                     } }.frame(height: 85)
                     .accessibilityLabel("Simülasyon rüzgâr sapmaları. Son değer \(Int(store.relativeWind)) derece.")
                 HStack {
-                    Text("ÖRNEK GEÇMİŞİ").tracking(1)
+                Text(store.isLiveMode ? "SON 2 DAKİKA · NMEA" : "ÖRNEK GEÇMİŞİ").tracking(1)
                     Spacer()
-                    Text("Referans \(degrees(store.input.meanWindDirection)) · Manuel")
+                    Text("Referans \(degrees(store.input.meanWindDirection)) · \(store.isLiveMode ? "Dairesel ortalama" : "Manuel")")
                 }.font(.system(size: 9)).foregroundStyle(Palette.secondary)
-                Slider(value: Binding(get: { store.relativeWind }, set: { value in
+                if !store.isLiveMode { Slider(value: Binding(get: { store.relativeWind }, set: { value in
                     store.isPlaying = false; store.relativeWind = value; store.recordWind(); store.savedFeedback = false
                 }), in: -30...30, step: 1, onEditingChanged: { editing in if !editing { store.persist() } })
-                    .accessibilityLabel("Rüzgâr sapması").accessibilityIdentifier("wind-slider")
-                Text("Son ölçüme değil, ortalamaya bak. 10° açtıktan sonra 4°'ye dönmek hâlâ 4° açan kontradır.")
-                    .font(.system(size: 11)).foregroundStyle(Palette.secondary).lineSpacing(3)
+                    .accessibilityLabel("Rüzgâr sapması").accessibilityIdentifier("wind-slider") }
+                if store.isLiveMode, store.liveWind == nil {
+                    Text("Rüzgâr güncel değil. Önceki ölçümler yalnızca geçmiş olarak gösterilir.")
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.gold)
+                }
             }
         }
     }
 
-    private var navigatorCard: some View {
+    @ViewBuilder private var navigatorCard: some View {
+        if !store.isLiveMode || store.liveReadinessMessage == nil { navigatorContent }
+    }
+
+    private var navigatorContent: some View {
         Surface {
             VStack(alignment: .leading, spacing: 16) {
-                HStack { Eyebrow(text: "Navigatör paneli"); Spacer(); Image(systemName: "scope").foregroundStyle(Palette.teal) }
+                HStack { Eyebrow(text: "Hedef"); Spacer(); Image(systemName: "scope").foregroundStyle(Palette.teal) }
                 HStack {
                     Metric(label: "Şamandıraya", value: "\(Int(store.analysis.distanceToMark))", unit: "m")
                     Metric(label: "Tahmini süre", value: duration(store.analysis.etaSeconds), unit: "")
@@ -242,8 +265,7 @@ struct SailingView: View {
                 detailRow("Mevcut kontra", store.input.tack == .starboard ? "Sancak" : "İskele")
                 detailRow("Kontra payı", store.analysis.isLongTack ? "Uzun kontra" : "Kısa kontra")
                 detailRow("Layline'a süre", duration(store.analysis.laylineSeconds))
-                detailRow("Pruva / Yerdeki rota", "\(degrees(store.analysis.heading)) / \(degrees(store.analysis.cog))")
-                Text("Süreler sabit hız ve rüzgâr varsayımıyla hesaplanır.").font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                detailRow(store.isLiveMode ? "Model pruva / yer rotası" : "Pruva / Yerdeki rota", "\(degrees(store.analysis.heading)) / \(degrees(store.analysis.cog))")
             }
         }
     }
@@ -255,11 +277,11 @@ struct SailingView: View {
     private var saveCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             TextField("Ekibe bir not bırak…", text: $note, axis: .vertical)
-                .font(.system(size: 13)).padding(16).background(.white, in: RoundedRectangle(cornerRadius: 14))
+                .font(.system(size: 13)).padding(16).background(Palette.surface, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityIdentifier("decision-note")
             ActionButton(title: store.savedFeedback ? "Seyir defterine kaydedildi" : "Kararı seyir defterine kaydet", icon: store.savedFeedback ? "checkmark" : "bookmark") {
                 store.saveDecision(note: note); note = ""
-            }.accessibilityIdentifier("save-decision")
+            }.accessibilityIdentifier("save-decision").disabled(store.isLiveMode && store.liveReadinessMessage != nil)
         }
     }
 
