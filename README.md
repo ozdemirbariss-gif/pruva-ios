@@ -16,6 +16,8 @@ Uygulama **çevrimdışı simülasyon / manuel karar laboratuvarı** ile **Wi-Fi
 
 Bu ekran görüntüleri simülasyon akışını gösterir.
 
+[Sentetik NMEA ile alınmış iPad start hattı](docs/screenshots/ipad-start-hatti.png)
+
 ## Çalışan özellikler
 
 - **Seyir:** dokunarak taşınabilen tekne, rüzgâra ve akıntıya göre dönen layline'lar, alternatif kontra yolları, belirsizlik bantları, ölçekli şematik parkur.
@@ -25,6 +27,7 @@ Bu ekran görüntüleri simülasyon akışını gösterir.
 - **Rüzgâr oynatma:** örnek salınımı başlat/duraklat; kullanıcı girdilerinden oluşan grafik. Referans değişince grafik aynı gerçek yönleri yeni ortalamaya göre gösterir.
 - **Seyir defteri:** karar ve ekip notunu cihazda sakla; eski koşulları haritada aç; farklı rüzgârla karşılaştır; metin notunu iOS paylaşım menüsünden dışa aktar.
 - **Wi-Fi ölçüm yolu:** yapılandırılabilir TCP host/port veya UDP unicast dinleme; SOG/STW ve gerçek/görünür rüzgâr ayrımı; 15 saniye güncellik kontrolü ve 2 dakikalık dairesel rüzgâr referansı. Ham telemetri yüklenmez.
+- **Start hattı:** komite/starboard ve şamandıra/port uçları teknenin güncel NMEA GPS konumundan ayrı ayrı pinlenir; iki uç alınınca çizgi ve uzunluğu parkurda görünür.
 - iPhone'da dikey akış, geniş iPad ekranında parkur ve kararın yan yana yerleşimi.
 
 ## Xcode'da çalıştırma

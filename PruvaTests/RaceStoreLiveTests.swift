@@ -14,8 +14,8 @@ final class RaceStoreLiveTests: XCTestCase {
         "$" + body + String(format: "*%02X", body.utf8.reduce(UInt8(0), ^))
     }
 
-    private func sendFix(_ store: RaceStore, at date: Date) {
-        store.receiveNMEA(sentence("GPRMC,120000,A,3650.000,N,02815.000,E,7.2,315.0,140926,,,A"), at: date)
+    private func sendFix(_ store: RaceStore, at date: Date, longitudeMinutes: String = "15.000") {
+        store.receiveNMEA(sentence("GPRMC,120000,A,3650.000,N,028\(longitudeMinutes),E,7.2,315.0,140926,,,A"), at: date)
     }
 
     private func sendComplete(_ store: RaceStore, at date: Date) {
@@ -137,5 +137,54 @@ final class RaceStoreLiveTests: XCTestCase {
         sendComplete(store, at: Date())
         XCTAssertNil(store.markCoordinate)
         XCTAssertTrue(store.liveReadinessMessage?.contains("şamandıranın koordinatını") == true)
+    }
+
+    func testStartPinsUseTwoDistinctLiveFixesAndSurviveReload() throws {
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("pruva-start-\(UUID()).json")
+        let store = RaceStore(storageURL: fileURL)
+        store.connectionSettings = NMEAConnectionSettings(transport: .udp, host: "", port: Int.random(in: 40_000...60_000))
+        defer { store.disconnectBoat() }
+        store.setMark(GeoCoordinate(latitude: 36.84, longitude: 28.25), name: "Orsa 1")
+        store.connectBoat()
+        let now = Date()
+        sendFix(store, at: now)
+
+        XCTAssertTrue(store.captureStartPin(.committee).contains("alındı"))
+        XCTAssertNil(store.startLineLengthMeters)
+        XCTAssertTrue(store.captureStartPin(.port).contains("aynı konumda"))
+        XCTAssertNil(store.portPinCoordinate)
+
+        sendFix(store, at: now.addingTimeInterval(1), longitudeMinutes: "15.060")
+        XCTAssertTrue(store.captureStartPin(.port).contains("alındı"))
+        let length = try XCTUnwrap(store.startLineLengthMeters)
+        XCTAssertGreaterThan(length, 80)
+        XCTAssertLessThan(length, 100)
+        XCTAssertNotNil(store.projectedCommitteePin)
+        XCTAssertNotNil(store.projectedPortPin)
+
+        let reloaded = RaceStore(storageURL: fileURL)
+        XCTAssertEqual(reloaded.committeePinCoordinate, store.committeePinCoordinate)
+        XCTAssertEqual(reloaded.portPinCoordinate, store.portPinCoordinate)
+        XCTAssertEqual(reloaded.startLineLengthMeters, length)
+
+        store.clearStartLine()
+        XCTAssertNil(store.committeePinCoordinate)
+        XCTAssertNil(store.portPinCoordinate)
+        XCTAssertNil(store.startLineLengthMeters)
+    }
+
+    func testStartPinCaptureRequiresFreshBoatGPS() {
+        let store = makeStore()
+        defer { store.disconnectBoat() }
+        XCTAssertNil(store.committeePinCoordinate)
+        XCTAssertTrue(store.captureStartPin(.committee).contains("GPS konumu bekleniyor"))
+        store.connectBoat()
+        XCTAssertTrue(store.captureStartPin(.committee).contains("GPS konumu bekleniyor"))
+        let now = Date()
+        sendFix(store, at: now)
+        XCTAssertTrue(store.captureStartPin(.committee).contains("alındı"))
+        store.telemetryNow = now.addingTimeInterval(16)
+        XCTAssertTrue(store.captureStartPin(.port).contains("GPS konumu bekleniyor"))
+        XCTAssertNil(store.portPinCoordinate)
     }
 }

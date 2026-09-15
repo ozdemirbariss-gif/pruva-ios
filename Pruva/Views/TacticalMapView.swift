@@ -34,6 +34,8 @@ struct TacticalMapView: View {
     var windAvailable: Bool
     var boatAvailable: Bool
     var showMark: Bool
+    var startCommittee: MapPoint?
+    var startPort: MapPoint?
 
     @State private var trail: [MapPoint] = []
 
@@ -57,7 +59,9 @@ struct TacticalMapView: View {
         sensorMode: Bool = false,
         windAvailable: Bool = true,
         boatAvailable: Bool = true,
-        showMark: Bool = true
+        showMark: Bool = true,
+        startCommittee: MapPoint? = nil,
+        startPort: MapPoint? = nil
     ) {
         self.boat = boat
         self.mark = mark
@@ -79,6 +83,8 @@ struct TacticalMapView: View {
         self.windAvailable = windAvailable
         self.boatAvailable = boatAvailable
         self.showMark = showMark
+        self.startCommittee = startCommittee
+        self.startPort = startPort
     }
 
     var body: some View {
@@ -95,6 +101,7 @@ struct TacticalMapView: View {
                         drawRoutes(context: &context, chart: chart)
                     }
                     if showTrail { drawTrail(context: &context, chart: chart) }
+                    drawStartLine(context: &context, chart: chart)
                     if showMark { drawMark(context: &context, point: chart.screen(mark)) }
                     if boatAvailable { drawBoat(context: &context, point: chart.screen(boat)) }
                 }
@@ -105,7 +112,7 @@ struct TacticalMapView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Kuzey yukarı yarış şeması")
                 .accessibilityValue(sensorMode
-                    ? "\(boatAvailable ? "Güncel GPS konumu" : "GPS bekleniyor"). \(windAvailable ? "Rüzgâr \(Int(normalized(windDirection))) derece" : "Rüzgâr bekleniyor"). \(showMark ? "Şamandıra tanımlı" : "Şamandıra ekleyin")."
+                    ? "\(boatAvailable ? "Güncel GPS konumu" : "GPS bekleniyor"). \(windAvailable ? "Rüzgâr \(Int(normalized(windDirection))) derece" : "Rüzgâr bekleniyor"). \(showMark ? "Şamandıra tanımlı" : "Şamandıra ekleyin"). \(startCommittee != nil && startPort != nil ? "Start hattı tanımlı" : "Start hattı eksik")."
                     : "Şamandıraya \(Int(distanceToMark)) metre. \(isStarboard ? "Sancak" : "İskele") kontra. Rüzgâr \(Int(normalized(windDirection))) derece.")
 
                 Group {
@@ -179,15 +186,53 @@ struct TacticalMapView: View {
     }
 
     private var framingPoints: [MapPoint] {
-        if !showMark {
+        var result = boatAvailable ? [boat] : []
+        if showMark { result.append(mark) }
+        if let startCommittee { result.append(startCommittee) }
+        if let startPort { result.append(startPort) }
+        if result.isEmpty || (!showMark && result.count == 1) {
             return [MapPoint(x: boat.x - 500, y: boat.y - 500), MapPoint(x: boat.x + 500, y: boat.y + 500)]
         }
-        var result = [boat, mark]
-        if showLaylines, let route {
+        if showMark && showLaylines, let route {
             result.append(route.starboardTurn)
             result.append(route.portTurn)
         }
         return result
+    }
+
+    private func drawStartLine(context: inout GraphicsContext, chart: ChartProjection) {
+        let committeePoint = startCommittee.map(chart.screen)
+        let portPoint = startPort.map(chart.screen)
+        if let startCommittee, let startPort {
+            var line = Path()
+            line.move(to: chart.screen(startCommittee))
+            line.addLine(to: chart.screen(startPort))
+            context.stroke(line, with: .color(MapPalette.gold),
+                           style: StrokeStyle(lineWidth: 3.2, lineCap: .round))
+        }
+        let labelsSideBySide = abs((committeePoint?.y ?? 0) - (portPoint?.y ?? 100)) < 16
+        if let committeePoint {
+            let offset: CGFloat = labelsSideBySide || committeePoint.y < (portPoint?.y ?? .infinity) ? -24 : 24
+            drawStartPin(context: &context, point: committeePoint,
+                         color: MapPalette.teal, label: "KOMİTE · STBD", labelOffset: offset)
+        }
+        if let portPoint {
+            let offset: CGFloat = labelsSideBySide || portPoint.y > (committeePoint?.y ?? -.infinity) ? 24 : -24
+            let labelX = min(max(portPoint.x + 45, 60), chart.size.width - 60)
+            drawStartPin(context: &context, point: portPoint,
+                         color: MapPalette.gold, label: "PIN · PORT", labelOffset: offset,
+                         labelX: labelX)
+        }
+    }
+
+    private func drawStartPin(context: inout GraphicsContext, point: CGPoint, color: Color,
+                              label: String, labelOffset: CGFloat, labelX: CGFloat? = nil) {
+        let halo = Path(ellipseIn: CGRect(x: point.x - 11, y: point.y - 11, width: 22, height: 22))
+        context.fill(halo, with: .color(color.opacity(0.18)))
+        let pin = Path(ellipseIn: CGRect(x: point.x - 5, y: point.y - 5, width: 10, height: 10))
+        context.fill(pin, with: .color(color))
+        context.stroke(pin, with: .color(Palette.background), lineWidth: 1.5)
+        drawPill(text: label, at: CGPoint(x: labelX ?? point.x, y: point.y + labelOffset), context: &context)
     }
 
     private var windBadge: some View {

@@ -10,6 +10,7 @@
 		060B30AD5A926B50D394A424 /* BoatConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */; };
 		10CF1DFC9BFC0989FD5B4703 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF34139F66B61F901B93ED63 /* DesignSystem.swift */; };
 		205E093C7AAE14C9A3C83299 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */; };
+		45818E584A478BFA0C1F4E7A /* RaceStoreLiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */; };
 		4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3848EE58F61E7F185DD04D82 /* ScenarioView.swift */; };
 		53B1E3E91AA5A334F12E5187 /* NMEAConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */; };
 		60E6AEB69E27FDF28EB6673E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01DAFDA1DC9F2F512E277124 /* Assets.xcassets */; };
@@ -43,6 +44,7 @@
 /* Begin PBXFileReference section */
 		01DAFDA1DC9F2F512E277124 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStoreLiveTests.swift; sourceTree = "<group>"; };
 		32A3DDEFC18493918CEDA250 /* LogbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookView.swift; sourceTree = "<group>"; };
 		3848EE58F61E7F185DD04D82 /* ScenarioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioView.swift; sourceTree = "<group>"; };
 		589D5F96E99B848222633617 /* PruvaUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PruvaUITests.swift; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 		9DA59CAADA44ABD2EEBDC63B /* PruvaTests */ = {
 			isa = PBXGroup;
 			children = (
+				26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */,
 			);
 			path = PruvaTests;
 			sourceTree = "<group>";
@@ -298,6 +301,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45818E584A478BFA0C1F4E7A /* RaceStoreLiveTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

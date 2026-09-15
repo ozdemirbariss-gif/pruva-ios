@@ -9,6 +9,7 @@ struct BoatConnectionView: View {
     @State private var longitude = ""
     @State private var markName = "Yarış şamandırası"
     @State private var markMessage: String?
+    @State private var startMessage: String?
 
     var body: some View {
         @Bindable var store = store
@@ -71,6 +72,26 @@ struct BoatConnectionView: View {
                     if let markMessage { Text(markMessage).font(.footnote).foregroundStyle(Palette.teal) }
                     Text("Kuzey/doğu pozitif, güney/batı negatif. Harita yerel ölçekte çizilir; gerçek hedef girmeden layline önerilmez.")
                         .font(.footnote).foregroundStyle(Palette.secondary)
+                }
+                if store.isLiveMode || store.committeePinCoordinate != nil || store.portPinCoordinate != nil {
+                    Section("Start hattı") {
+                        Button("Komite · starboard pin al") {
+                            startMessage = store.captureStartPin(.committee)
+                        }.disabled(store.freshPosition == nil).accessibilityIdentifier("connection-start-committee")
+                        Button("Şamandıra · port pin al") {
+                            startMessage = store.captureStartPin(.port)
+                        }.disabled(store.freshPosition == nil).accessibilityIdentifier("connection-start-port")
+                        Text(store.startLineLengthMeters.map { "Start hattı · \(Int($0)) m" }
+                             ?? (store.committeePinCoordinate != nil || store.portPinCoordinate != nil ? "Bir pin alındı" : "İki pin bekleniyor"))
+                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Palette.teal)
+                        if let startMessage { Text(startMessage).font(.footnote).foregroundStyle(Palette.secondary) }
+                        if store.committeePinCoordinate != nil || store.portPinCoordinate != nil {
+                            Button("Start pinlerini temizle", role: .destructive) {
+                                store.clearStartLine(); startMessage = nil
+                            }
+                        }
+                    }
                 }
                 if store.isLiveMode {
                     Section("Yarış modeli") {

@@ -8,6 +8,7 @@ struct SailingView: View {
     @State private var showPresets = false
     @State private var showReasons = false
     @State private var note = ""
+    @State private var startPinMessage: String?
 
     var body: some View {
         GeometryReader { proxy in
@@ -97,7 +98,8 @@ struct SailingView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("PARKUR").font(.system(size: 11, weight: .bold, design: .monospaced)).tracking(1)
-                    Text(store.isLiveMode ? "NMEA" : store.scenarioName).font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                    Text(store.isLiveMode ? startLineStatus : store.scenarioName)
+                        .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.secondary)
                 }
                 Spacer()
                 Button { showLayers = true } label: {
@@ -124,9 +126,23 @@ struct SailingView: View {
                 windSpeed: store.isLiveMode ? store.liveWind?.value.speed : store.input.windSpeed,
                 sensorMode: store.isLiveMode, windAvailable: !store.isLiveMode || store.liveWind != nil,
                 boatAvailable: !store.isLiveMode || store.freshPosition != nil,
-                showMark: !store.isLiveMode || store.markCoordinate != nil
+                showMark: !store.isLiveMode || store.markCoordinate != nil,
+                startCommittee: store.projectedCommitteePin.map { MapPoint(x: $0.east, y: $0.north) },
+                startPort: store.projectedPortPin.map { MapPoint(x: $0.east, y: $0.north) }
             ).frame(height: height)
                 .id("\(store.isLiveMode)-\(store.markCoordinate?.latitude ?? 0)-\(store.markCoordinate?.longitude ?? 0)")
+            if store.isLiveMode {
+                HStack(spacing: 8) {
+                    startPinButton("KOMİTE · STARBOARD", endpoint: .committee,
+                                   captured: store.committeePinCoordinate != nil, identifier: "capture-start-committee")
+                    startPinButton("PIN · PORT", endpoint: .port,
+                                   captured: store.portPinCoordinate != nil, identifier: "capture-start-port")
+                }.padding(.horizontal, 12).padding(.top, 12)
+                if let startPinMessage {
+                    Text(startPinMessage).font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18)
+                }
+            }
             HStack {
                 Text(store.isLiveMode ? "GPS KONUMU" : "DOKUN · TEKNEYİ TAŞI")
                 Spacer()
@@ -136,6 +152,27 @@ struct SailingView: View {
         }.background(Palette.surface, in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Palette.line, lineWidth: 1))
             .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var startLineStatus: String {
+        if let length = store.startLineLengthMeters { return "START HATTI · \(Int(length)) m" }
+        if store.committeePinCoordinate != nil || store.portPinCoordinate != nil { return "START HATTI · 1/2 PIN" }
+        return "NMEA · START PINLERİ BEKLENİYOR"
+    }
+
+    private func startPinButton(_ title: String, endpoint: StartEndpoint,
+                                captured: Bool, identifier: String) -> some View {
+        Button { startPinMessage = store.captureStartPin(endpoint) } label: {
+            HStack(spacing: 5) {
+                Image(systemName: captured ? "checkmark.circle.fill" : "location.circle")
+                Text(title).lineLimit(1).minimumScaleFactor(0.75)
+            }.font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundStyle(captured ? Palette.background : Palette.teal)
+                .frame(maxWidth: .infinity).padding(.vertical, 12)
+                .background(captured ? Palette.teal : Palette.seafoam,
+                            in: RoundedRectangle(cornerRadius: 10))
+        }.buttonStyle(.plain).disabled(store.freshPosition == nil)
+            .accessibilityIdentifier(identifier)
     }
 
     @ViewBuilder private var decision: some View {

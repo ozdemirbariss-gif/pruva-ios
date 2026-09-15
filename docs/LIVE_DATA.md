@@ -50,6 +50,12 @@ Canlı hedefi ondalık derece cinsinden **enlem/boylam** ile girin veya şamand�
 
 Gerçek GPS konumu ve hedef, hesap için yerel doğu/kuzey metre düzlemine çevrilir. Bu yaklaşım yakın yarış parkuru içindir; dönüşüm 100 km altı ve mutlak enlem 85° altıyla sınırlıdır. Ekran **şematik yarış diyagramıdır**; kıyı, derinlik, engel veya deniz haritası tabanı sağlamaz.
 
+## Start hattı pinleri
+
+Canlı seyir parkurundaki **Komite · starboard** düğmesine komite ucundayken, **Pin · port** düğmesine start şamandırası ucundayken basın. Düğmeler yalnız teknenin güncel NMEA GPS konumuyla çalışır; telefonun GPS'i kullanılmaz. İlk uç haritada pin olarak görünür. İkinci uç alındığında start hattı ve metre cinsinden uzunluğu çizilir. Aynı düğmeye yeniden basmak ilgili ucu yeni konumda pinler; **Tekne bağlantısı → Start hattı** bölümünden iki pin birlikte temizlenebilir.
+
+Start hattı, hedef yarış şamandırasından ayrı saklanır ve uygulama yeniden açıldığında korunur. İki uç aynı konumda olamaz; yerel çizim için araları 1 m ile 10 km arasında olmalıdır. Hat şematiktir; start zamanı, hat tarafı veya yarış kuralı kararı üretmez.
+
 Tüm sensör verileri cihazda işlenir; ham telemetri sunucuya yüklenmez. Kullanıcının kendi seçimiyle paylaşacağı karar notu ayrı bir dışa aktarma eylemidir. Arka planda kesintisiz kayıt veya otomatik yeniden bağlanma garantisi yoktur; uygulamaya dönüldüğünde güncellik yeniden kontrol edilmelidir.
 
 ## Yerel sentetik yayıncı

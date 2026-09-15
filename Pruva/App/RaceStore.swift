@@ -3,6 +3,7 @@ import Observation
 import RaceCore
 
 enum CrewRole: String, CaseIterable { case tactician = "Taktisyen", navigator = "Navigatör" }
+enum StartEndpoint { case committee, port }
 
 struct DecisionEntry: Identifiable, Codable {
     var id = UUID()
@@ -40,6 +41,8 @@ final class RaceStore {
     var telemetryNow = Date()
     var markCoordinate: GeoCoordinate?
     var markName = "Yarış şamandırası"
+    var committeePinCoordinate: GeoCoordinate?
+    var portPinCoordinate: GeoCoordinate?
     private var localOrigin: GeoCoordinate?
     private var simulationInput = DemoScenario.longTack.input
     private var simulationName = DemoScenario.longTack.title
@@ -76,6 +79,8 @@ final class RaceStore {
             connectionSettings = saved.connectionSettings ?? NMEAConnectionSettings()
             markCoordinate = saved.markCoordinate
             markName = saved.markName ?? "Yarış şamandırası"
+            committeePinCoordinate = saved.committeePinCoordinate
+            portPinCoordinate = saved.portPinCoordinate
         } catch { storageMessage = "Önceki oturum okunamadı. Örnek parkur açıldı." }
     }
 
@@ -135,7 +140,8 @@ final class RaceStore {
         do {
             let data = try JSONEncoder().encode(SavedState(input: isLiveMode ? simulationInput : input, entries: entries,
                 scenarioName: isLiveMode ? simulationName : scenarioName, connectionSettings: connectionSettings,
-                markCoordinate: markCoordinate, markName: markName))
+                markCoordinate: markCoordinate, markName: markName,
+                committeePinCoordinate: committeePinCoordinate, portPinCoordinate: portPinCoordinate))
             try data.write(to: fileURL, options: .atomic)
             storageMessage = nil
             return true
@@ -174,6 +180,19 @@ final class RaceStore {
         connection.isRunning ? telemetry.trueWind(at: telemetryNow) : nil
     }
     var measuredBoatHeading: Double? { freshHeading?.value ?? freshCOG?.value }
+    var startLineLengthMeters: Double? {
+        guard let committeePinCoordinate, let portPinCoordinate,
+              let delta = portPinCoordinate.projected(relativeTo: committeePinCoordinate) else { return nil }
+        let length = hypot(delta.east, delta.north)
+        return (1...10_000).contains(length) ? length : nil
+    }
+    var projectedCommitteePin: Point? { projectedStartPin(committeePinCoordinate) }
+    var projectedPortPin: Point? { projectedStartPin(portPinCoordinate) }
+
+    private func projectedStartPin(_ coordinate: GeoCoordinate?) -> Point? {
+        guard isLiveMode, let coordinate, let origin = markCoordinate ?? localOrigin else { return nil }
+        return coordinate.projected(relativeTo: origin)
+    }
     var liveReadinessMessage: String? {
         guard connection.isRunning else { return "Tekne bağlantısı kapalı. TCP veya UDP bağlantısını başlatın." }
         guard let fix = freshPosition, freshSOG != nil else { return "Güncel GPS konumu ve yer hızı bekleniyor. 15 saniyeyi geçen veriler kullanılmaz." }
@@ -262,6 +281,32 @@ final class RaceStore {
         if isLiveMode { scenarioName = markName; updateLiveInput() }
         persist()
     }
+
+    @discardableResult func captureStartPin(_ endpoint: StartEndpoint) -> String {
+        guard isLiveMode, let fix = freshPosition else { return "Güncel tekne GPS konumu bekleniyor." }
+        let other = endpoint == .committee ? portPinCoordinate : committeePinCoordinate
+        if let other {
+            guard let delta = fix.value.projected(relativeTo: other) else {
+                return "Diğer start pini yerel parkur hesabı için çok uzak."
+            }
+            let separation = hypot(delta.east, delta.north)
+            guard (1...10_000).contains(separation) else {
+                return separation < 1 ? "İki start pini aynı konumda olamaz." : "Start hattı 10 km sınırını aşamaz."
+            }
+        }
+        switch endpoint {
+        case .committee: committeePinCoordinate = fix.value
+        case .port: portPinCoordinate = fix.value
+        }
+        persist()
+        return endpoint == .committee ? "Komite · starboard pini alındı." : "Şamandıra · port pini alındı."
+    }
+
+    func clearStartLine() {
+        committeePinCoordinate = nil
+        portPinCoordinate = nil
+        persist()
+    }
 }
 
 private struct SavedState: Codable {
@@ -271,4 +316,6 @@ private struct SavedState: Codable {
     var connectionSettings: NMEAConnectionSettings? = nil
     var markCoordinate: GeoCoordinate? = nil
     var markName: String? = nil
+    var committeePinCoordinate: GeoCoordinate? = nil
+    var portPinCoordinate: GeoCoordinate? = nil
 }
