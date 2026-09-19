@@ -14,6 +14,7 @@ struct MapPoint: Equatable, Sendable {
 /// A north-up race diagram. Wind is FROM true degrees; all speeds are in knots.
 /// Downwind angles may be an absolute TWA (145°) or the angle off dead downwind (35°).
 struct TacticalMapView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var boat: MapPoint
     var mark: MapPoint
     var windDirection: Double
@@ -28,6 +29,14 @@ struct TacticalMapView: View {
     var showLaylines: Bool
     var showTrail: Bool
     var onBoatMove: ((MapPoint) -> Void)?
+    var measuredHeading: Double?
+    var windSpeed: Double?
+    var sensorMode: Bool
+    var windAvailable: Bool
+    var boatAvailable: Bool
+    var showMark: Bool
+    var startCommittee: MapPoint?
+    var startPort: MapPoint?
 
     @State private var trail: [MapPoint] = []
 
@@ -45,7 +54,15 @@ struct TacticalMapView: View {
         uncertainty: Double,
         showLaylines: Bool,
         showTrail: Bool,
-        onBoatMove: ((MapPoint) -> Void)? = nil
+        onBoatMove: ((MapPoint) -> Void)? = nil,
+        measuredHeading: Double? = nil,
+        windSpeed: Double? = nil,
+        sensorMode: Bool = false,
+        windAvailable: Bool = true,
+        boatAvailable: Bool = true,
+        showMark: Bool = true,
+        startCommittee: MapPoint? = nil,
+        startPort: MapPoint? = nil
     ) {
         self.boat = boat
         self.mark = mark
@@ -61,6 +78,14 @@ struct TacticalMapView: View {
         self.showLaylines = showLaylines
         self.showTrail = showTrail
         self.onBoatMove = onBoatMove
+        self.measuredHeading = measuredHeading
+        self.windSpeed = windSpeed
+        self.sensorMode = sensorMode
+        self.windAvailable = windAvailable
+        self.boatAvailable = boatAvailable
+        self.showMark = showMark
+        self.startCommittee = startCommittee
+        self.startPort = startPort
     }
 
     var body: some View {
@@ -71,14 +96,15 @@ struct TacticalMapView: View {
                     context.clip(to: Path(CGRect(origin: .zero, size: size)))
                     drawWater(context: &context, size: size)
                     drawGrid(context: &context, chart: chart)
-                    drawCourse(context: &context, chart: chart)
-                    if showLaylines {
+                    if showMark && windAvailable { drawCourse(context: &context, chart: chart) }
+                    if showLaylines && windAvailable && showMark {
                         drawLaylines(context: &context, chart: chart)
                         drawRoutes(context: &context, chart: chart)
                     }
                     if showTrail { drawTrail(context: &context, chart: chart) }
-                    drawMark(context: &context, point: chart.screen(mark))
-                    drawBoat(context: &context, point: chart.screen(boat))
+                    drawStartLine(context: &context, chart: chart)
+                    if showMark { drawMark(context: &context, point: chart.screen(mark)) }
+                    if boatAvailable { drawBoat(context: &context, point: chart.screen(boat)) }
                 }
                 .contentShape(Rectangle())
                 .gesture(SpatialTapGesture().onEnded { event in
@@ -86,9 +112,14 @@ struct TacticalMapView: View {
                 })
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Kuzey yukarı yarış şeması")
-                .accessibilityValue("Şamandıraya \(Int(distanceToMark)) metre. \(isStarboard ? "Sancak" : "İskele") kontra. Rüzgâr \(Int(normalized(windDirection))) derece.")
+                .accessibilityValue(sensorMode
+                    ? "\(boatAvailable ? "Güncel GPS konumu" : "GPS bekleniyor"). \(windAvailable ? "Rüzgâr \(Int(normalized(windDirection))) derece" : "Rüzgâr bekleniyor"). \(showMark ? "Şamandıra tanımlı" : "Şamandıra ekleyin"). \(startCommittee != nil && startPort != nil ? "Start hattı tanımlı" : "Start hattı eksik")."
+                    : "Şamandıraya \(Int(distanceToMark)) metre. \(isStarboard ? "Sancak" : "İskele") kontra. Rüzgâr \(Int(normalized(windDirection))) derece.")
 
-                windBadge
+                Group {
+                    if windAvailable { windBadge }
+                    else { Text("RÜZGÂR BEKLENİYOR").font(.system(size: 9, weight: .semibold)).foregroundStyle(MapPalette.slate) }
+                }
                     .padding(.leading, 19)
                     .padding(.top, 18)
                     .allowsHitTesting(false)
@@ -105,10 +136,10 @@ struct TacticalMapView: View {
                 .allowsHitTesting(false)
             }
             .background(MapPalette.water)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(MapPalette.slate.opacity(0.055), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(MapPalette.slate.opacity(0.2), lineWidth: 1)
                     .allowsHitTesting(false)
             }
         }
@@ -156,12 +187,53 @@ struct TacticalMapView: View {
     }
 
     private var framingPoints: [MapPoint] {
-        var result = [boat, mark]
-        if showLaylines, let route {
+        var result = boatAvailable ? [boat] : []
+        if showMark { result.append(mark) }
+        if let startCommittee { result.append(startCommittee) }
+        if let startPort { result.append(startPort) }
+        if result.isEmpty || (!showMark && result.count == 1) {
+            return [MapPoint(x: boat.x - 500, y: boat.y - 500), MapPoint(x: boat.x + 500, y: boat.y + 500)]
+        }
+        if showMark && showLaylines, let route {
             result.append(route.starboardTurn)
             result.append(route.portTurn)
         }
         return result
+    }
+
+    private func drawStartLine(context: inout GraphicsContext, chart: ChartProjection) {
+        let committeePoint = startCommittee.map(chart.screen)
+        let portPoint = startPort.map(chart.screen)
+        if let startCommittee, let startPort {
+            var line = Path()
+            line.move(to: chart.screen(startCommittee))
+            line.addLine(to: chart.screen(startPort))
+            context.stroke(line, with: .color(MapPalette.gold),
+                           style: StrokeStyle(lineWidth: 3.2, lineCap: .round))
+        }
+        let labelsSideBySide = abs((committeePoint?.y ?? 0) - (portPoint?.y ?? 100)) < 16
+        if let committeePoint {
+            let offset: CGFloat = labelsSideBySide || committeePoint.y < (portPoint?.y ?? .infinity) ? -24 : 24
+            drawStartPin(context: &context, point: committeePoint,
+                         color: MapPalette.teal, label: "KOMİTE · STBD", labelOffset: offset)
+        }
+        if let portPoint {
+            let offset: CGFloat = labelsSideBySide || portPoint.y > (committeePoint?.y ?? -.infinity) ? 24 : -24
+            let labelX = min(max(portPoint.x + 45, 60), chart.size.width - 60)
+            drawStartPin(context: &context, point: portPoint,
+                         color: MapPalette.gold, label: "PIN · PORT", labelOffset: offset,
+                         labelX: labelX)
+        }
+    }
+
+    private func drawStartPin(context: inout GraphicsContext, point: CGPoint, color: Color,
+                              label: String, labelOffset: CGFloat, labelX: CGFloat? = nil) {
+        let halo = Path(ellipseIn: CGRect(x: point.x - 15, y: point.y - 15, width: 30, height: 30))
+        context.fill(halo, with: .color(color.opacity(0.23)))
+        let pin = Path(ellipseIn: CGRect(x: point.x - 7, y: point.y - 7, width: 14, height: 14))
+        context.fill(pin, with: .color(color))
+        context.stroke(pin, with: .color(.white), lineWidth: 2)
+        drawPill(text: label, at: CGPoint(x: labelX ?? point.x, y: point.y + labelOffset), context: &context)
     }
 
     private var windBadge: some View {
@@ -170,18 +242,19 @@ struct TacticalMapView: View {
                 .fill(MapPalette.teal)
                 .frame(width: 15, height: 30)
                 .rotationEffect(.degrees(windDirection))
-                .animation(.easeInOut(duration: 0.55), value: windDirection)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.55), value: windDirection)
                 .frame(width: 32, height: 32)
-                .background(.white.opacity(0.8), in: Circle())
+                .background(Palette.surface.opacity(0.9), in: Circle())
             VStack(alignment: .leading, spacing: 3) {
                 Text("RÜZGÂR")
                     .font(.system(size: 8, weight: .semibold))
                     .tracking(1.7)
                     .foregroundStyle(MapPalette.slate.opacity(0.5))
                 Text(String(format: "%03.0f°", normalized(windDirection)))
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
                     .monospacedDigit()
                     .foregroundStyle(MapPalette.slate)
+                if let windSpeed { Text(String(format: "%.1f kn", windSpeed)).font(.system(size: 10, weight: .medium)).foregroundStyle(MapPalette.teal) }
             }
         }
     }
@@ -203,7 +276,7 @@ struct TacticalMapView: View {
         return HStack(alignment: .bottom, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(Int(meters)) m")
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .monospacedDigit()
                 ScaleBar()
                     .stroke(MapPalette.slate.opacity(0.42), lineWidth: 1)
@@ -211,17 +284,13 @@ struct TacticalMapView: View {
             }
             .foregroundStyle(MapPalette.slate.opacity(0.5))
             Spacer(minLength: 0)
-            if showLaylines {
+            if showLaylines && windAvailable && showMark {
                 HStack(spacing: 11) {
                     legend("Sancak", color: MapPalette.teal)
                     legend("İskele", color: MapPalette.port)
                 }
             }
             Spacer(minLength: 0)
-            Text("ŞEMA")
-                .font(.system(size: 7, weight: .semibold))
-                .tracking(1.2)
-                .foregroundStyle(MapPalette.slate.opacity(0.35))
         }
     }
 
@@ -229,7 +298,7 @@ struct TacticalMapView: View {
         HStack(spacing: 4) {
             Capsule().fill(color.opacity(0.7)).frame(width: 12, height: 2)
             Text(title)
-                .font(.system(size: 8, weight: .medium))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(MapPalette.slate.opacity(0.6))
         }
     }
@@ -238,22 +307,10 @@ struct TacticalMapView: View {
         context.fill(
             Path(CGRect(origin: .zero, size: size)),
             with: .linearGradient(
-                Gradient(colors: [Color(red: 0.965, green: 0.981, blue: 0.979), .white]),
+                Gradient(colors: [MapPalette.water, Color(red: 0.84, green: 0.91, blue: 0.89)]),
                 startPoint: .zero, endPoint: CGPoint(x: size.width, y: size.height)
             )
         )
-        // Decorative shore contour: this is a local tactical diagram, not a nautical chart.
-        var shore = Path()
-        shore.move(to: CGPoint(x: size.width * 0.80, y: -8))
-        shore.addCurve(
-            to: CGPoint(x: size.width + 12, y: size.height * 0.33),
-            control1: CGPoint(x: size.width * 0.78, y: size.height * 0.12),
-            control2: CGPoint(x: size.width * 0.95, y: size.height * 0.09)
-        )
-        shore.addLine(to: CGPoint(x: size.width + 12, y: -8))
-        shore.closeSubpath()
-        context.fill(shore, with: .color(Color(red: 0.932, green: 0.947, blue: 0.925).opacity(0.55)))
-        context.stroke(shore, with: .color(MapPalette.slate.opacity(0.045)), lineWidth: 1)
     }
 
     private func drawGrid(context: inout GraphicsContext, chart: ChartProjection) {
@@ -273,7 +330,7 @@ struct TacticalMapView: View {
             path.addLine(to: chart.screen(MapPoint(x: maximum.x, y: y)))
             y += spacing
         }
-        context.stroke(path, with: .color(MapPalette.teal.opacity(0.055)), lineWidth: 0.65)
+        context.stroke(path, with: .color(MapPalette.slate.opacity(0.12)), lineWidth: 0.8)
     }
 
     private func drawCourse(context: inout GraphicsContext, chart: ChartProjection) {
@@ -312,7 +369,7 @@ struct TacticalMapView: View {
             var ray = Path()
             ray.move(to: chart.screen(mark))
             ray.addLine(to: chart.screen(mark.offset(vector, distance: -rayLength)))
-            context.stroke(ray, with: .color(color.opacity(0.66)), style: StrokeStyle(lineWidth: 1.4, dash: [6, 6]))
+            context.stroke(ray, with: .color(color.opacity(0.66)), style: StrokeStyle(lineWidth: 1.6, dash: starboard ? [9, 5] : [3, 5]))
         }
     }
 
@@ -354,26 +411,34 @@ struct TacticalMapView: View {
     }
 
     private func drawMark(context: inout GraphicsContext, point: CGPoint) {
-        let halo = Path(ellipseIn: CGRect(x: point.x - 19, y: point.y - 19, width: 38, height: 38))
-        context.fill(halo, with: .color(MapPalette.gold.opacity(0.1)))
-        let buoy = Path(ellipseIn: CGRect(x: point.x - 9, y: point.y - 9, width: 18, height: 18))
+        let halo = Path(ellipseIn: CGRect(x: point.x - 28, y: point.y - 28, width: 56, height: 56))
+        context.fill(halo, with: .color(MapPalette.gold.opacity(0.17)))
+        let ring = Path(ellipseIn: CGRect(x: point.x - 18, y: point.y - 18, width: 36, height: 36))
+        context.stroke(ring, with: .color(MapPalette.gold.opacity(0.75)), lineWidth: 2)
+        let buoy = Path(ellipseIn: CGRect(x: point.x - 12, y: point.y - 12, width: 24, height: 24))
         context.fill(buoy, with: .color(MapPalette.gold))
-        context.stroke(buoy, with: .color(.white), lineWidth: 2.5)
+        context.stroke(buoy, with: .color(.white), lineWidth: 3)
         context.draw(
-            Text(isDownwind ? "2" : "1").font(.system(size: 9, weight: .bold)).foregroundColor(.white),
+            Text(isDownwind ? "2" : "1").font(.system(size: 11, weight: .bold)).foregroundColor(.white),
             at: point
         )
         drawPill(
             text: isDownwind ? "ALT ŞAMANDIRA" : "ÜST ŞAMANDIRA",
-            at: CGPoint(x: point.x, y: point.y - 30),
+            at: CGPoint(x: point.x, y: point.y - 39),
             context: &context
         )
     }
 
     private func drawBoat(context: inout GraphicsContext, point: CGPoint) {
+        if sensorMode && measuredHeading == nil {
+            let dot = Path(ellipseIn: CGRect(x: point.x - 6, y: point.y - 6, width: 12, height: 12))
+            context.fill(dot, with: .color(MapPalette.teal))
+            context.stroke(dot, with: .color(.white), lineWidth: 2)
+            return
+        }
         var local = context
         local.translateBy(x: point.x, y: point.y)
-        local.rotate(by: .degrees(heading(starboard: isStarboard)))
+        local.rotate(by: .degrees(measuredHeading ?? heading(starboard: isStarboard)))
         var wake = Path()
         wake.move(to: CGPoint(x: -4, y: 12))
         wake.addQuadCurve(to: CGPoint(x: -11, y: 35), control: CGPoint(x: -7, y: 24))
@@ -387,7 +452,7 @@ struct TacticalMapView: View {
         hull.addCurve(to: CGPoint(x: 0, y: -17), control1: CGPoint(x: -8, y: 4), control2: CGPoint(x: -7, y: -8))
         hull.closeSubpath()
         local.addFilter(.shadow(color: MapPalette.slate.opacity(0.17), radius: 4, x: 0, y: 3))
-        local.fill(hull, with: .color(MapPalette.slate))
+        local.fill(hull, with: .color(Palette.ink))
         local.stroke(hull, with: .color(.white), lineWidth: 1.5)
         var deck = Path()
         deck.move(to: CGPoint(x: 0, y: -10))
@@ -399,11 +464,11 @@ struct TacticalMapView: View {
 
     private func drawPill(text: String, at point: CGPoint, context: inout GraphicsContext) {
         let label = context.resolve(
-            Text(text).font(.system(size: 7.5, weight: .semibold)).tracking(1.1).foregroundColor(MapPalette.slate.opacity(0.7))
+            Text(text).font(.system(size: 9, weight: .semibold)).tracking(1.1).foregroundColor(MapPalette.slate.opacity(0.7))
         )
         let measured = label.measure(in: CGSize(width: 170, height: 20))
         let bounds = CGRect(x: point.x - measured.width / 2 - 8, y: point.y - 10, width: measured.width + 16, height: 20)
-        context.fill(Path(roundedRect: bounds, cornerRadius: 7), with: .color(.white.opacity(0.9)))
+        context.fill(Path(roundedRect: bounds, cornerRadius: 7), with: .color(Palette.surface.opacity(0.95)))
         context.draw(label, at: point)
     }
 
@@ -427,11 +492,11 @@ struct TacticalMapView: View {
 }
 
 private enum MapPalette {
-    static let water = Color(red: 0.969, green: 0.982, blue: 0.979)
-    static let teal = Color(red: 0.137, green: 0.490, blue: 0.482)
-    static let slate = Color(red: 0.090, green: 0.173, blue: 0.224)
-    static let port = Color(red: 0.449, green: 0.545, blue: 0.592)
-    static let gold = Color(red: 0.808, green: 0.667, blue: 0.400)
+    static let water = Color(red: 0.91, green: 0.95, blue: 0.94)
+    static let teal = Palette.teal
+    static let slate = Palette.ink
+    static let port = Color(red: 0.34, green: 0.43, blue: 0.64)
+    static let gold = Palette.gold
 }
 
 private struct Vector {

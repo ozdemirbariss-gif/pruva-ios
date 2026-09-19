@@ -9,18 +9,16 @@ struct LogbookView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                VStack(alignment: .leading, spacing: 7) {
-                    Eyebrow(text: "Her karar bir öğrenme")
-                    Text("Seyir defteri").font(.system(size: 32, weight: .regular, design: .serif))
-                    Text("\(store.entries.count) kayıt · Bu cihazda saklanır").font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                }
+                Text("\(store.entries.count) KAYIT")
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Palette.secondary)
                 if store.entries.isEmpty {
                     Surface(padding: 30) {
                         VStack(spacing: 20) {
                             Image(systemName: "book.pages").font(.system(size: 42, weight: .ultraLight)).foregroundStyle(Palette.teal)
-                            Text("Yarış biter. İçgörü kalır.").font(.system(size: 24, weight: .regular, design: .serif))
-                            Text("Seyir ekranında bir kararı notunla kaydet. Rüzgârı, konumunu ve kararın gerekçesini yeniden incele; ekibinle paylaş.")
-                                .font(.system(size: 13)).foregroundStyle(Palette.secondary).multilineTextAlignment(.center).lineSpacing(4)
+                            Text("Henüz kayıt yok").font(.system(size: 18, weight: .semibold))
+                            Text("Seyir ekranından karar kaydedin.")
+                                .font(.system(size: 13)).foregroundStyle(Palette.secondary).multilineTextAlignment(.center)
                         }.padding(.vertical, 35).frame(maxWidth: .infinity)
                     }
                 } else {
@@ -29,11 +27,12 @@ struct LogbookView: View {
                             Surface {
                                 VStack(alignment: .leading, spacing: 13) {
                                     HStack {
-                                        Text(entry.date.formatted(date: .abbreviated, time: .shortened)).font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                                        Text(journalDate(entry.date)).font(.system(size: 10)).foregroundStyle(Palette.secondary)
                                         Spacer()
                                         Image(systemName: "arrow.up.right").foregroundStyle(Palette.teal)
                                     }
-                                    Text(entry.title).font(.system(size: 23, weight: .regular, design: .serif)).foregroundStyle(Palette.ink)
+                                    Text(entry.title).font(.system(size: 21, weight: .semibold)).foregroundStyle(Palette.ink)
+                                    if entry.liveContext != nil { Eyebrow(text: "Tekne NMEA kaydı") }
                                     HStack(spacing: 16) {
                                         Label(degrees(entry.input.windDirection), systemImage: "wind")
                                         Text("\(decimal(entry.input.boatSpeed)) kn")
@@ -75,8 +74,12 @@ struct DecisionDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Eyebrow(text: entry.date.formatted(date: .abbreviated, time: .shortened))
-                    Text(a.title).font(.system(size: 29, weight: .regular, design: .serif))
+                    Eyebrow(text: journalDate(entry.date))
+                    if let context = entry.liveContext {
+                        Text("Tekne NMEA kaydı · SOG \(decimal(context.speedOverGround)) kn · \(context.windSource)")
+                            .font(.system(size: 11)).foregroundStyle(Palette.teal)
+                    }
+                    Text(a.title).font(.system(size: 25, weight: .semibold))
                     TacticalMapView(boat: MapPoint(x: input.boatPosition.east, y: input.boatPosition.north), mark: MapPoint(x: input.markPosition.east, y: input.markPosition.north), windDirection: input.windDirection, meanWindDirection: input.meanWindDirection, targetAngle: input.targetAngle, isDownwind: input.leg == .downwind, isStarboard: input.tack == .starboard, currentEast: input.currentEast, currentNorth: input.currentNorth, boatSpeed: input.boatSpeed, uncertainty: input.windUncertainty, showLaylines: true, showTrail: true)
                         .frame(height: 300).clipShape(RoundedRectangle(cornerRadius: 22))
                     Text(a.message).font(.system(size: 14)).lineSpacing(4)
