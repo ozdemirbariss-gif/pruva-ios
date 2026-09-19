@@ -26,20 +26,19 @@ struct RootView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 9) {
-                Text(tab.shortLabel.uppercased())
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    .tracking(1.4)
+                Text("pruva")
+                    .font(.system(size: 30, weight: .bold)).tracking(-1.5)
                 Spacer()
                 Button { showConnection = true } label: { HStack(spacing: 5) {
                     Circle().fill(Palette.teal).frame(width: 5, height: 5)
-                    Text(store.isLiveMode ? (store.freshPosition != nil && store.liveWind != nil ? "NMEA · CANLI" : "VERİ BEKLENİYOR") : "NMEA BAĞLAN")
+                    Text(store.isLiveMode ? (store.freshPosition != nil && store.liveWind != nil ? "Canlı seyir" : "Veri bekleniyor") : "Tekneye bağlan")
                         .font(.system(size: 10, weight: .bold, design: .monospaced)).tracking(0.5)
-                }.foregroundStyle(Palette.teal).padding(.horizontal, 10).padding(.vertical, 8)
+                }.foregroundStyle(Palette.teal).padding(.horizontal, 10).frame(minHeight: 44)
                     .background(Palette.seafoam, in: Capsule())
                 }.buttonStyle(.plain).accessibilityLabel("Tekne bağlantısı").accessibilityIdentifier("boat-connection")
                 Button { showAbout = true } label: {
                     Image(systemName: "info.circle").font(.system(size: 20)).foregroundStyle(Palette.secondary)
-                        .frame(width: 36, height: 44)
+                        .frame(width: 44, height: 44)
                 }.accessibilityLabel("Uygulama hakkında")
             }.padding(.horizontal, 22).padding(.top, 8).padding(.bottom, 10)
                 .frame(maxWidth: 1200)
@@ -71,9 +70,9 @@ struct RootView: View {
                         VStack(spacing: 6) {
                             Image(systemName: item.icon).font(.system(size: 20, weight: tab == item ? .semibold : .regular))
                             Text(item.shortLabel).font(.system(size: 10, weight: .semibold))
-                        }.foregroundStyle(tab == item ? Palette.teal : Palette.secondary)
+                        }.foregroundStyle(tab == item ? Palette.ink : Palette.secondary)
                             .frame(maxWidth: .infinity).padding(.vertical, 10)
-                            .background(tab == item ? Palette.seafoam : .clear, in: RoundedRectangle(cornerRadius: 12))
+                            .background(tab == item ? Palette.background : .clear, in: RoundedRectangle(cornerRadius: 12))
                     }.buttonStyle(.plain).accessibilityIdentifier("tab-\(item.rawValue)")
                 }
             }.padding(.horizontal, 20).padding(.top, 9).padding(.bottom, 5)

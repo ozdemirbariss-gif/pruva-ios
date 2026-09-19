@@ -1,6 +1,33 @@
 import XCTest
 
 final class PruvaUITests: XCTestCase {
+    @MainActor func testTargetEditorValidatesAndUpdatesCourse() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting"]
+        app.launch()
+        app.buttons["edit-course-target"].tap()
+        let distance = app.textFields["target-second"]
+        XCTAssertTrue(distance.waitForExistence(timeout: 3))
+        distance.tap()
+        if let value = distance.value as? String {
+            distance.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: value.count))
+        }
+        distance.typeText("0")
+        app.buttons["save-course-target"].tap()
+        XCTAssertTrue(app.staticTexts["target-error"].waitForExistence(timeout: 3))
+        distance.tap()
+        distance.typeText(XCUIKeyboardKey.delete.rawValue + "1250")
+        app.buttons["save-course-target"].tap()
+        XCTAssertTrue(app.buttons["edit-course-target"].waitForExistence(timeout: 3))
+        app.buttons["edit-course-target"].tap()
+        XCTAssertTrue(distance.waitForExistence(timeout: 3))
+        XCTAssertEqual(distance.value as? String, "1250")
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Focused target editor"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     @MainActor func testWrittenVoiceCommandShowsModelAdvice() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting", "-AppleLanguages", "(tr)", "-AppleLocale", "tr_TR"]

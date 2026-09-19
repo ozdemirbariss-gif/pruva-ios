@@ -3,8 +3,10 @@ import Charts
 import RaceCore
 
 struct SailingView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(RaceStore.self) private var store
     @Environment(VoiceCommandService.self) private var voice
+    @State private var showMarkEditor = false
     @State private var showLayers = false
     @State private var showPresets = false
     @State private var showReasons = false
@@ -15,7 +17,7 @@ struct SailingView: View {
     var body: some View {
         GeometryReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 16) {
                     title
                     if store.isLiveMode {
                         HStack(spacing: 7) {
@@ -28,21 +30,26 @@ struct SailingView: View {
                     if proxy.size.width > 760 {
                         HStack(alignment: .top, spacing: 22) {
                             VStack(spacing: 18) { instruments; map(height: 480); windCard }.frame(maxWidth: .infinity)
-                            VStack(spacing: 18) { voiceCard; decision; navigatorCard; saveCard }.frame(width: 320)
+                            VStack(spacing: 18) { decision; navigatorCard; saveCard }.frame(width: 320)
                         }
                     } else {
                         instruments
-                        voiceCard
-                        map(height: 310)
+                        map(height: 240)
                         decision
                         windCard
                         navigatorCard
                         saveCard
                     }
-                }.padding(.horizontal, 22).padding(.top, 10).padding(.bottom, 26)
+                }.padding(.horizontal, 18).padding(.top, 4).padding(.bottom, 26)
                     .frame(maxWidth: 1200).frame(maxWidth: .infinity)
             }.scrollIndicators(.hidden)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            voiceCard.padding(.horizontal, 18).padding(.vertical, 8)
+                .frame(maxWidth: 800).frame(maxWidth: .infinity)
+                .background(.regularMaterial)
+        }
+        .sheet(isPresented: $showMarkEditor) { CourseTargetView() }
         .sheet(isPresented: $showLayers) { layers }
         .sheet(isPresented: $showPresets) {
             NavigationStack {
@@ -67,34 +74,45 @@ struct SailingView: View {
     }
 
     private var title: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Button { showPresets = true } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "flag.checkered").font(.system(size: 12))
-                        Text(store.input.leg == .upwind ? "Orsa · Şamandıra 1" : "Pupa · Şamandıra 2").font(.system(size: 12, weight: .medium))
-                        Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
-                    }.foregroundStyle(Palette.teal)
-                }.accessibilityLabel("Parkur seç").disabled(store.isLiveMode)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Eyebrow(text: "Şimdi · Taktik öneri")
+                    Text(store.isLiveMode && store.liveReadinessMessage != nil ? "Parkuru hazırla" : store.analysis.title)
+                        .font(.system(size: 24, weight: .bold)).tracking(-0.6)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Spacer()
-                HStack(spacing: 0) {
+                Text(store.isLiveMode ? "CANLI" : "SİMÜLASYON")
+                    .font(.system(size: 10, weight: .bold)).tracking(0.8)
+                    .foregroundStyle(Palette.teal).padding(8)
+                    .background(Palette.seafoam, in: Capsule())
+            }
+            HStack(spacing: 12) {
+                Button { showPresets = true } label: {
+                    Label("Parkur seç", systemImage: "flag.checkered")
+                        .font(.system(size: 13, weight: .semibold)).frame(minHeight: 44)
+                }.accessibilityLabel("Parkur seç").disabled(store.isLiveMode)
+                Spacer(minLength: 0)
+                HStack(spacing: 2) {
                     ForEach(CrewRole.allCases, id: \.self) { role in
                         Button { store.role = role } label: {
-                            Text(role.rawValue).font(.system(size: 10, weight: .semibold))
-                                .padding(.horizontal, 10).padding(.vertical, 9)
-                                .background(store.role == role ? Palette.seafoam : .clear, in: Capsule())
-                                .foregroundStyle(store.role == role ? Palette.ink : Palette.secondary)
+                            Text(role.rawValue).font(.system(size: 12, weight: .semibold))
+                                .padding(.horizontal, 12).frame(minHeight: 44)
+                                .background(store.role == role ? Palette.ink : .clear, in: Capsule())
+                                .foregroundStyle(store.role == role ? .white : Palette.secondary)
                         }.buttonStyle(.plain)
+                            .accessibilityAddTraits(store.role == role ? .isSelected : [])
                     }
-                }.padding(3).background(Palette.line.opacity(0.5), in: Capsule())
+                }.padding(3).background(Palette.surface, in: Capsule())
             }
         }
     }
 
     private var instruments: some View {
-        Surface(padding: 18) {
-            HStack(spacing: 14) {
-                Metric(label: "Gerçek rüzgâr", value: store.isLiveMode ? store.liveWind.map { decimal($0.value.speed) } ?? "—" : decimal(store.input.windSpeed), unit: "kn")
+        Surface(padding: 16) {
+            HStack(spacing: 10) {
+                Metric(label: "Rüzgâr", value: store.isLiveMode ? store.liveWind.map { decimal($0.value.speed) } ?? "—" : decimal(store.input.windSpeed), unit: "kn")
                 Rectangle().fill(Palette.line).frame(width: 1, height: 36)
                 Metric(label: "Rüzgâr yönü", value: store.isLiveMode ? store.liveWind.map { degrees($0.value.direction) } ?? "—" : degrees(store.input.windDirection), unit: "")
                 Rectangle().fill(Palette.line).frame(width: 1, height: 36)
@@ -107,14 +125,18 @@ struct SailingView: View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("PARKUR").font(.system(size: 11, weight: .bold, design: .monospaced)).tracking(1)
-                    Text(store.isLiveMode ? startLineStatus : store.scenarioName)
+                    Text(store.input.leg == .upwind ? "Orsa parkuru" : "Pupa parkuru").font(.system(size: 18, weight: .bold))
+                    Text(store.isLiveMode ? startLineStatus : "\(store.scenarioName) · \(Int(store.analysis.distanceToMark)) m")
                         .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.secondary)
                 }
                 Spacer()
+                Button { showMarkEditor = true } label: {
+                    Label("Şamandıra", systemImage: "plus.circle.fill")
+                        .font(.system(size: 13, weight: .semibold)).frame(minHeight: 44)
+                }.accessibilityIdentifier("edit-course-target")
                 Button { showLayers = true } label: {
                     Image(systemName: "square.3.layers.3d").font(.system(size: 18)).foregroundStyle(Palette.teal)
-                        .frame(width: 38, height: 38).background(Palette.background, in: Circle())
+                        .frame(width: 44, height: 44).background(Palette.background, in: Circle())
                 }.accessibilityLabel("Harita katmanları")
             }.padding(.horizontal, 18).padding(.top, 17).padding(.bottom, 8)
             TacticalMapView(
@@ -154,14 +176,14 @@ struct SailingView: View {
                 }
             }
             HStack {
-                Text(store.isLiveMode ? "GPS KONUMU" : "DOKUN · TEKNEYİ TAŞI")
+                Text(store.isLiveMode ? "GPS konumu · Şematik parkur" : "Şematik parkur · Dokun, tekneyi taşı")
                 Spacer()
-                Text("±\(Int(store.input.windUncertainty))°")
+                Text("Belirsizlik ±\(Int(store.input.windUncertainty))°")
             }.font(.system(size: 10, weight: .medium, design: .monospaced))
                 .foregroundStyle(Palette.secondary).padding(.horizontal, 18).padding(.vertical, 10)
-        }.background(Palette.surface, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Palette.line, lineWidth: 1))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }.background(Palette.surface, in: RoundedRectangle(cornerRadius: 22))
+            .overlay(RoundedRectangle(cornerRadius: 22).stroke(Palette.line, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 22))
     }
 
     private var startLineStatus: String {
@@ -186,18 +208,18 @@ struct SailingView: View {
     }
 
     private var voiceCard: some View {
-        Surface {
+        Surface(padding: 12) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
                     Image(systemName: "waveform").foregroundStyle(voice.isListening ? Palette.gold : Palette.teal)
-                        .symbolEffect(.pulse, options: .repeating, value: voice.isListening)
-                    TextField("Rüzgâr açtı · Layline'dayız", text: $typedCommand)
-                        .font(.system(size: 12)).textInputAutocapitalization(.sentences)
+                        .symbolEffect(.pulse, options: .repeating, isActive: voice.isListening && !reduceMotion)
+                    TextField("Taktiğe sor · Rüzgâr açtı…", text: $typedCommand)
+                        .font(.system(size: 15)).textInputAutocapitalization(.sentences)
                         .focused($commandFocused)
                         .submitLabel(.send).onSubmit(sendTypedCommand)
                         .accessibilityIdentifier("voice-command-input")
                     Button(action: sendTypedCommand) {
-                        Image(systemName: "arrow.up.circle.fill").font(.system(size: 24))
+                        Image(systemName: "arrow.up.circle.fill").font(.system(size: 28)).frame(width: 44, height: 44)
                     }.disabled(typedCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityLabel("Komutu değerlendir").accessibilityIdentifier("voice-submit")
                     Button {
@@ -206,7 +228,7 @@ struct SailingView: View {
                         else { Task { await voice.start() } }
                     } label: {
                         Image(systemName: voice.isListening ? "stop.circle.fill" : "mic.circle.fill")
-                            .font(.system(size: 26))
+                            .font(.system(size: 30)).frame(width: 44, height: 44)
                     }.disabled(voice.isStarting)
                         .accessibilityLabel(voice.isStarting ? "Mikrofon hazırlanıyor" : voice.isListening ? "Dinlemeyi bitir" : "Sesli komut ver")
                         .accessibilityIdentifier("voice-listen")
@@ -221,7 +243,7 @@ struct SailingView: View {
                 if let advice = store.voiceAdvice {
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: advice.symbol).font(.system(size: 23))
-                            .symbolEffect(.pulse, options: .repeating, value: advice.title)
+
                             .frame(width: 35, height: 35)
                             .background(cueColor(advice.tone).opacity(0.17), in: Circle())
                         VStack(alignment: .leading, spacing: 5) {
@@ -275,13 +297,13 @@ struct SailingView: View {
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: isHold ? "arrow.up.right" : "arrow.triangle.turn.up.right.diamond")
-                    Text("TAKTİK OKUMA").tracking(1.6)
+                    Text("ŞİMDİ NE YAPMALI?").tracking(1)
                 }.font(.system(size: 10, weight: .bold)).foregroundStyle(Palette.teal)
                 Spacer()
                 Text("Model güveni: \(a.confidence.lowercased())").font(.system(size: 10)).foregroundStyle(Palette.secondary)
             }
-            Text(a.title).font(.system(size: 23, weight: .semibold)).accessibilityIdentifier("decision-title")
-            Text(store.role == .tactician ? a.message : navigatorMessage).font(.system(size: 13)).lineSpacing(4).foregroundStyle(Palette.ink.opacity(0.8))
+            Text(a.title).font(.system(size: 27, weight: .bold)).tracking(-0.6).accessibilityIdentifier("decision-title")
+            Text(store.role == .tactician ? a.message : navigatorMessage).font(.system(size: 15)).lineSpacing(4).foregroundStyle(Palette.ink.opacity(0.8))
             Rectangle().fill(Palette.teal.opacity(0.14)).frame(height: 1)
             HStack(alignment: .top, spacing: 9) {
                 Image(systemName: "eye").font(.system(size: 14)).padding(.top, 1)
@@ -295,7 +317,7 @@ struct SailingView: View {
                     Text(showReasons ? "Gerekçeleri gizle" : "Kararın arkasındaki hesap")
                     Spacer()
                     Image(systemName: showReasons ? "chevron.up" : "chevron.down")
-                }.font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.secondary)
+                }.font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.secondary).frame(minHeight: 44)
             }.buttonStyle(.plain)
             if showReasons {
                 ForEach(Array(a.reasons.enumerated()), id: \.offset) { _, reason in
@@ -305,8 +327,8 @@ struct SailingView: View {
                     .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.teal)
             }
         }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.seafoam, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Palette.line, lineWidth: 1))
+            .background(Palette.seafoam, in: RoundedRectangle(cornerRadius: 22))
+            .overlay(RoundedRectangle(cornerRadius: 22).stroke(Palette.line, lineWidth: 1))
     }
 
     private var navigatorMessage: String {
@@ -415,5 +437,132 @@ struct SailingView: View {
             }.navigationTitle("Harita katmanları").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Bitti") { showLayers = false } } }
         }.presentationDetents([.medium])
+    }
+}
+
+/// A focused target editor, reachable without entering connection settings.
+struct CourseTargetView: View {
+    @Environment(RaceStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var first = ""
+    @State private var second = ""
+    @State private var leg = RaceLeg.upwind
+    @State private var error: String?
+    @FocusState private var focused: Field?
+    private enum Field: Hashable { case name, first, second }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Image(systemName: "mappin.and.ellipse").font(.system(size: 32)).foregroundStyle(Palette.teal)
+                        Text("Bir sonraki hedef.").font(.system(size: 30, weight: .bold)).tracking(-0.8)
+                        Text(store.isLiveMode ? "Şamandırayı ekle. Parkur ve taktik hesapları güncellensin." : "Simülasyon hedefini tekneye göre yön ve mesafeyle belirle.")
+                            .font(.body).foregroundStyle(Palette.secondary)
+                    }
+                    Surface {
+                        VStack(alignment: .leading, spacing: 20) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Eyebrow(text: "Şamandıra adı")
+                                TextField("Örn. Orsa şamandırası", text: $name)
+                                    .focused($focused, equals: .name).submitLabel(.next)
+                                    .onSubmit { focused = .first }.accessibilityIdentifier("target-name")
+                            }
+                            Divider()
+                            Picker("Parkur bacağı", selection: $leg) {
+                                Text("Orsa").tag(RaceLeg.upwind)
+                                Text("Pupa").tag(RaceLeg.downwind)
+                            }.pickerStyle(.segmented)
+                            coordinateField(store.isLiveMode ? "Enlem" : "Hedef yönü", hint: store.isLiveMode ? "Örn. 40,9750" : "0–359", unit: "°", value: $first, field: .first)
+                            coordinateField(store.isLiveMode ? "Boylam" : "Mesafe", hint: store.isLiveMode ? "Örn. 29,0350" : "Örn. 1500", unit: store.isLiveMode ? "°" : "m", value: $second, field: .second)
+                        }
+                    }
+                    if store.isLiveMode {
+                        ActionButton(title: "Teknenin konumunu kullan", icon: "location.fill", filled: false) {
+                            guard let fix = store.freshPosition else { return }
+                            first = String(fix.value.latitude); second = String(fix.value.longitude)
+                            focused = nil
+                        }.disabled(store.freshPosition == nil)
+                        Text(store.freshPosition == nil ? "Konumla eklemek için güncel tekne GPS verisi gerekli. Koordinatları elle girebilirsin." : "Kuzey ve doğu pozitif; güney ve batı negatif. Ondalık derece kullan.")
+                            .font(.footnote).foregroundStyle(Palette.secondary)
+                    }
+                    if let error {
+                        Label(error, systemImage: "exclamationmark.circle.fill")
+                            .font(.subheadline).foregroundStyle(Palette.gold).accessibilityIdentifier("target-error")
+                    }
+                }.padding(22).frame(maxWidth: 600).frame(maxWidth: .infinity)
+            }.background(Palette.background)
+                .navigationTitle("Şamandıra").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Vazgeç") { dismiss() } }
+                    ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Bitti") { focused = nil } }
+                }
+                .safeAreaInset(edge: .bottom) {
+                    ActionButton(title: "Hedefi kaydet", icon: "arrow.right", action: save)
+                        .accessibilityIdentifier("save-course-target")
+                        .padding(20).background(.regularMaterial)
+                }
+                .onAppear {
+                    leg = store.input.leg
+                    name = store.isLiveMode ? store.markName : store.scenarioName
+                    if store.isLiveMode {
+                        if let mark = store.markCoordinate { first = String(mark.latitude); second = String(mark.longitude) }
+                    } else {
+                        let dx = store.input.markPosition.east - store.input.boatPosition.east
+                        let dy = store.input.markPosition.north - store.input.boatPosition.north
+                        first = String(format: "%.1f", (atan2(dx, dy) * 180 / .pi + 360).truncatingRemainder(dividingBy: 360))
+                        second = String(format: "%.0f", hypot(dx, dy))
+                    }
+                }
+        }.tint(Palette.teal).presentationDragIndicator(.visible)
+    }
+
+    private func coordinateField(_ title: String, hint: String, unit: String, value: Binding<String>, field: Field) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Eyebrow(text: title)
+            HStack {
+                TextField(hint, text: value).keyboardType(.numbersAndPunctuation)
+                    .focused($focused, equals: field).font(.system(size: 24, weight: .semibold)).monospacedDigit()
+                    .accessibilityLabel(title).accessibilityIdentifier(field == .first ? "target-first" : "target-second")
+                Text(unit).foregroundStyle(Palette.secondary)
+            }.padding(14).background(Palette.background, in: RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func save() {
+        func number(_ text: String) -> Double? {
+            Double(text.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: "."))
+        }
+        guard let a = number(first), let b = number(second), a.isFinite, b.isFinite else {
+            error = "Her iki alana da geçerli bir sayı gir."; return
+        }
+        if store.isLiveMode {
+            let coordinate = GeoCoordinate(latitude: a, longitude: b)
+            guard coordinate.isValid else { error = "Enlem −90…90, boylam −180…180 arasında olmalı."; return }
+            updateLeg()
+            store.setMark(coordinate, name: name)
+        } else {
+            guard (0..<360).contains(a), (1...100_000).contains(b) else {
+                error = "Yön 0–359°, mesafe 1–100.000 m arasında olmalı."; return
+            }
+            store.isPlaying = false
+            updateLeg()
+            store.input.markPosition = Point(east: store.input.boatPosition.east + sin(a * .pi / 180) * b,
+                                             north: store.input.boatPosition.north + cos(a * .pi / 180) * b)
+            let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            store.scenarioName = cleanName.isEmpty ? "Özel parkur" : cleanName
+            store.savedFeedback = false
+            store.persist()
+        }
+        dismiss()
+    }
+
+    private func updateLeg() {
+        if store.input.leg != leg {
+            store.input.leg = leg
+            store.input.targetAngle = leg == .upwind ? 45 : 145
+        }
     }
 }

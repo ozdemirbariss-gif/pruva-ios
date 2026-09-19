@@ -26,7 +26,7 @@ Oynatma, kurgulanmış rüzgâr koşullarını değiştirir. “Replay” benzer
 
 ## Görsel yön
 
-İstenen görünüm yumuşak, premium bir beyaz palettir: kırık beyaz zemin, beyaz kartlar, koyu lacivert metin, soluk deniz yeşili vurgu, az ve yumuşak gölge. Sancak ve iskele yalnızca renkle ayrılmaz; çizgi biçimi ve açık etiketler kullanılır. Parkur görseli dekor değil, kararın nedenini anlatan ana araçtır.
+İstenen görünüm yumuşak, premium bir beyaz palettir: kırık beyaz zemin, beyaz kartlar, siyaha yakın metin, soluk deniz yeşili vurgu, az ve yumuşak gölge. Sancak ve iskele yalnızca renkle ayrılmaz; çizgi biçimi ve açık etiketler kullanılır. Parkur görseli dekor değil, kararın nedenini anlatan ana araçtır.
 
 Tipografi büyük sayıları kısa birimleriyle birlikte gösterir; saniye, derece ve knot okunabilir kalır. Telefon ekranında birincil karar ve parkur baskındır. iPad'in genişliğinde aynı bağlam yan yana gösterilebilir. Hareketler sakin ve anlamlıdır; yön veya layline değişikliği animasyonla izlenebilir, sürekli dikkat dağıtan döngüler kullanılmaz.
 
@@ -48,3 +48,12 @@ Bu başlangıç ürünü yerel SwiftUI uygulaması, sınanabilir yarış çekird
 - Uygulama internet, hesap veya harici enstrüman olmadan ilk deneyimini açar.
 
 Teknik sınırlar, doğrulama planı ve sonraki entegrasyonların koşulları [mimari belgesinde](ARCHITECTURE.md); yarış kurallarının hesap karşılığı [karar modelinde](DECISION_MODEL.md) yer alır.
+
+
+## Eylül 2026 arayüz güncellemesi
+
+- Seyir ekranı kısa taktik önerisiyle açılır; simülasyon/canlı etiketi görünür kalır.
+- Beyaz kartlar, siyah birincil butonlar, deniz yeşili vurgu ve hafif gölgeler ortak tasarım sisteminden gelir. SF sistem yazısı, SF Symbols, SwiftUI Canvas ve Swift Charts kullanılır; ek bağımlılık gerekmez.
+- Parkurdaki Şamandıra düğmesi bağımsız hedef formunu açar. Canlı modda ad, bacak, enlem/boylam veya güncel tekne GPS konumu; simülasyonda tekneye göre yön/mesafe girilir. Geçersiz girişler kaydedilmez, Vazgeç değişiklik yapmaz.
+- Sesli/yazılı taktik yardım çubuğu seyir ekranının altında sabittir. Kararın ayrıntıları ve kayıt akışı kaydırılarak erişilir.
+- Sancak/iskele layline çizgileri renk, kesik uzunluğu ve metin etiketiyle ayrılır. Harita şematik olarak etiketlenir; azaltılmış hareket tercihinde rüzgâr oku animasyonu kapatılır.

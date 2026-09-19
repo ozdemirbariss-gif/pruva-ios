@@ -14,6 +14,7 @@ struct MapPoint: Equatable, Sendable {
 /// A north-up race diagram. Wind is FROM true degrees; all speeds are in knots.
 /// Downwind angles may be an absolute TWA (145°) or the angle off dead downwind (35°).
 struct TacticalMapView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var boat: MapPoint
     var mark: MapPoint
     var windDirection: Double
@@ -241,7 +242,7 @@ struct TacticalMapView: View {
                 .fill(MapPalette.teal)
                 .frame(width: 15, height: 30)
                 .rotationEffect(.degrees(windDirection))
-                .animation(.easeInOut(duration: 0.55), value: windDirection)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.55), value: windDirection)
                 .frame(width: 32, height: 32)
                 .background(Palette.surface.opacity(0.9), in: Circle())
             VStack(alignment: .leading, spacing: 3) {
@@ -275,7 +276,7 @@ struct TacticalMapView: View {
         return HStack(alignment: .bottom, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(Int(meters)) m")
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .monospacedDigit()
                 ScaleBar()
                     .stroke(MapPalette.slate.opacity(0.42), lineWidth: 1)
@@ -297,7 +298,7 @@ struct TacticalMapView: View {
         HStack(spacing: 4) {
             Capsule().fill(color.opacity(0.7)).frame(width: 12, height: 2)
             Text(title)
-                .font(.system(size: 8, weight: .medium))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(MapPalette.slate.opacity(0.6))
         }
     }
@@ -306,7 +307,7 @@ struct TacticalMapView: View {
         context.fill(
             Path(CGRect(origin: .zero, size: size)),
             with: .linearGradient(
-                Gradient(colors: [MapPalette.water, Color(red: 0.065, green: 0.14, blue: 0.24)]),
+                Gradient(colors: [MapPalette.water, Color(red: 0.84, green: 0.91, blue: 0.89)]),
                 startPoint: .zero, endPoint: CGPoint(x: size.width, y: size.height)
             )
         )
@@ -368,7 +369,7 @@ struct TacticalMapView: View {
             var ray = Path()
             ray.move(to: chart.screen(mark))
             ray.addLine(to: chart.screen(mark.offset(vector, distance: -rayLength)))
-            context.stroke(ray, with: .color(color.opacity(0.66)), style: StrokeStyle(lineWidth: 1.4, dash: [6, 6]))
+            context.stroke(ray, with: .color(color.opacity(0.66)), style: StrokeStyle(lineWidth: 1.6, dash: starboard ? [9, 5] : [3, 5]))
         }
     }
 
@@ -451,7 +452,7 @@ struct TacticalMapView: View {
         hull.addCurve(to: CGPoint(x: 0, y: -17), control1: CGPoint(x: -8, y: 4), control2: CGPoint(x: -7, y: -8))
         hull.closeSubpath()
         local.addFilter(.shadow(color: MapPalette.slate.opacity(0.17), radius: 4, x: 0, y: 3))
-        local.fill(hull, with: .color(Palette.background))
+        local.fill(hull, with: .color(Palette.ink))
         local.stroke(hull, with: .color(.white), lineWidth: 1.5)
         var deck = Path()
         deck.move(to: CGPoint(x: 0, y: -10))
@@ -463,7 +464,7 @@ struct TacticalMapView: View {
 
     private func drawPill(text: String, at point: CGPoint, context: inout GraphicsContext) {
         let label = context.resolve(
-            Text(text).font(.system(size: 7.5, weight: .semibold)).tracking(1.1).foregroundColor(MapPalette.slate.opacity(0.7))
+            Text(text).font(.system(size: 9, weight: .semibold)).tracking(1.1).foregroundColor(MapPalette.slate.opacity(0.7))
         )
         let measured = label.measure(in: CGSize(width: 170, height: 20))
         let bounds = CGRect(x: point.x - measured.width / 2 - 8, y: point.y - 10, width: measured.width + 16, height: 20)
@@ -491,10 +492,10 @@ struct TacticalMapView: View {
 }
 
 private enum MapPalette {
-    static let water = Color(red: 0.045, green: 0.105, blue: 0.19)
+    static let water = Color(red: 0.91, green: 0.95, blue: 0.94)
     static let teal = Palette.teal
     static let slate = Palette.ink
-    static let port = Color(red: 0.42, green: 0.54, blue: 0.77)
+    static let port = Color(red: 0.34, green: 0.43, blue: 0.64)
     static let gold = Palette.gold
 }
 
