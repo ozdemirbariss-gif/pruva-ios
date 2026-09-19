@@ -2,18 +2,16 @@
 
 **Rotayı gör. Doğru anda karar ver.**
 
-iPhone ve iPad için yerel SwiftUI yarış karar asistanı. Taktisyen ve navigatörün rüzgâr, layline, kontra payı ve manevra maliyetini aynı görsel üzerinden değerlendirmesi için tasarlandı. Lacivert cihaz ekranı, açık mavi rota çizgileri ve tek aralıklı ölçüm yazıları kullanır.
+iPhone ve iPad için yerel SwiftUI yarış karar asistanı. Taktisyen ve navigatörün rüzgâr, layline, kontra payı ve manevra maliyetini aynı görsel üzerinden değerlendirmesi için tasarlandı. Kırık beyaz zemin, yüksek kontrastlı tipografi, deniz yeşili vurgular ve büyük dokunma alanları kullanır. Taktik önerisi ilk bakışta görünür; sesli/yazılı yardım çubuğu ekranın altında sabittir.
 
 Uygulama **çevrimdışı simülasyon / manuel karar laboratuvarı** ile **Wi-Fi NMEA 0183 veri alımı** sunar. TCP istemcisi veya UDP unicast üzerinden teknenin GPS, heading, suya göre hız ve rüzgâr verileri cihazda işlenir. Canlı öneri için gerekli güncel ölçümler ve gerçek şamandıra gerekir; eksik/eski veri öneri üretmez. Gerçek tekne bağlantısı henüz sahada doğrulanmadı. [Bağlantı kurulumu ve test akışı](docs/LIVE_DATA.md).
 
 <p>
-  <img src="docs/screenshots/iphone-seyir.png" width="250" alt="Pruva iPhone seyir ekranı">
-  <img src="docs/screenshots/iphone-senaryolar.png" width="250" alt="Pruva senaryo laboratuvarı">
-  <img src="docs/screenshots/iphone-defter.png" width="250" alt="Pruva seyir defteri">
-  <img src="docs/screenshots/iphone-sesli-komut.png" width="250" alt="Pruva sesli komutun yazılı ve görsel karar yanıtı">
+  <img src="docs/screenshots/premium-iphone.png" width="250" alt="Pruva iPhone: taktik önerisi, parkur ve sabit yardım çubuğu">
+  <img src="docs/screenshots/premium-ipad.png" width="400" alt="Pruva iPad: parkur ve taktiklerin yan yana görünümü">
 </p>
 
-[iPad ekranını görüntüle](docs/screenshots/ipad-seyir.png)
+[iPhone ekranını görüntüle](docs/screenshots/premium-iphone.png) · [iPad ekranını görüntüle](docs/screenshots/premium-ipad.png)
 
 Bu ekran görüntüleri simülasyon akışını gösterir.
 
@@ -22,6 +20,7 @@ Bu ekran görüntüleri simülasyon akışını gösterir.
 ## Çalışan özellikler
 
 - **Seyir:** dokunarak taşınabilen tekne, rüzgâra ve akıntıya göre dönen layline'lar, alternatif kontra yolları, belirsizlik bantları, ölçekli şematik parkur.
+- **Hızlı hedef girişi:** parkurdan tek dokunuşla şamandıra düzenleme; canlı modda koordinat veya güncel tekne GPS konumu, simülasyonda yön/mesafe. Geçersiz girişler kaydedilmez.
 - **İki ekip rolü:** taktisyen için VMG ve karar gerekçesi; navigatör için VMC, yer rotası, hedef mesafesi ve kontra süreleri.
 - **Karar motoru:** ortalamaya göre shift, uzun/kısa kontra, ek manevra maliyeti, kullanılabilir süre, basınç varsayımı, kirli hava ve son yaklaşım.
 - **Senaryolar:** uzun kontra, süren kafalama, layline eşiği, pupa ve son yaklaşım. Hız, açı, shift, akıntı ve maliyet kaydırıcıları anında hesaplanır.
