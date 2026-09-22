@@ -183,13 +183,13 @@ public enum RaceEngine {
             message = "Rüzgâr kayması mevcut kontrayı destekliyor. Hızını koru, layline'a kalan süreyi izle."
         }
 
-        let confidence: String
+        let confidence: AnalysisConfidence
         if !valid || course.eta == nil || !shiftResolved || horizon < 30 {
-            confidence = "Düşük"
+            confidence = .low
         } else if abs(signedShift) > 2 * input.windUncertainty + 2 && horizon >= 90 && feasible {
-            confidence = "Yüksek"
+            confidence = .high
         } else {
-            confidence = "Orta"
+            confidence = .medium
         }
         return RaceAnalysis(
             recommendation: recommendation, title: title, message: message, trigger: trigger,

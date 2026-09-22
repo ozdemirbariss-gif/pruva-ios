@@ -46,6 +46,10 @@ final class VoiceCommandService {
             errorMessage = "Türkçe konuşma tanıma şu anda kullanılamıyor. Komutu yazıyla verebilirsiniz."
             return
         }
+        guard recognizer.supportsOnDeviceRecognition else {
+            errorMessage = "Cihaz içi Türkçe konuşma tanıma kullanılamıyor. Komutu yazıyla verebilirsiniz."
+            return
+        }
         stopAudio()
         do {
             let session = AVAudioSession.sharedInstance()
@@ -54,7 +58,7 @@ final class VoiceCommandService {
             try session.setActive(true)
             let request = SFSpeechAudioBufferRecognitionRequest()
             request.shouldReportPartialResults = true
-            request.requiresOnDeviceRecognition = recognizer.supportsOnDeviceRecognition
+            request.requiresOnDeviceRecognition = true
             self.request = request
             let input = engine.inputNode
             input.installTap(onBus: 0, bufferSize: 1024, format: input.outputFormat(forBus: 0)) { buffer, _ in
@@ -95,6 +99,12 @@ final class VoiceCommandService {
         isStarting = false
         stopAudio()
         if synthesizer.isSpeaking { synthesizer.stopSpeaking(at: .immediate) }
+    }
+
+    @discardableResult func announce(_ message: String) -> Bool {
+        guard !isListening, !isStarting, !synthesizer.isSpeaking else { return false }
+        speak(message)
+        return true
     }
 
     func speak(_ message: String) {

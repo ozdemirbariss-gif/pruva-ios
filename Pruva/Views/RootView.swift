@@ -4,22 +4,23 @@ import RaceCore
 import UIKit
 
 enum AppTab: String, CaseIterable {
-    case sail = "Seyir", scenarios = "Senaryolar", log = "Seyir defteri"
+    case boat = "Tekne", sail = "Seyir", scenarios = "Senaryolar", log = "Seyir defteri"
     var shortLabel: String {
-        switch self { case .sail: "Seyir"; case .scenarios: "Senaryo"; case .log: "Defter" }
+        switch self { case .boat: "Tekne"; case .sail: "Seyir"; case .scenarios: "Senaryo"; case .log: "Defter" }
     }
     var icon: String {
-        switch self { case .sail: "location.north.line"; case .scenarios: "slider.horizontal.3"; case .log: "book.closed" }
+        switch self { case .boat: "antenna.radiowaves.left.and.right"; case .sail: "location.north.line"; case .scenarios: "slider.horizontal.3"; case .log: "book.closed" }
     }
 }
 
 struct RootView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(RaceStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
     @State private var tab = AppTab.sail
     @State private var showAbout = false
-    @State private var showConnection = false
     @State private var voice = VoiceCommandService()
+    @State private var announcementGate = SailingAnnouncementGate()
     @State private var volumeShortcut = VolumePinShortcut()
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -27,24 +28,27 @@ struct RootView: View {
         VStack(spacing: 0) {
             HStack(spacing: 9) {
                 Text("pruva")
-                    .font(.system(size: 30, weight: .bold)).tracking(-1.5)
+                    .font(.system(typeSize.isAccessibilitySize ? .headline : .largeTitle, weight: .bold)).tracking(-1.5)
                 Spacer()
-                Button { showConnection = true } label: { HStack(spacing: 5) {
+                if !typeSize.isAccessibilitySize { Button { tab = .boat } label: { AdaptiveStack(spacing: 5) {
                     Circle().fill(Palette.teal).frame(width: 5, height: 5)
                     Text(store.isLiveMode ? (store.freshPosition != nil && store.liveWind != nil ? "Canlı seyir" : "Veri bekleniyor") : "Tekneye bağlan")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced)).tracking(0.5)
+                        .font(.system(.caption2, design: .monospaced, weight: .bold)).tracking(0.5)
                 }.foregroundStyle(Palette.teal).padding(.horizontal, 10).frame(minHeight: 44)
                     .background(Palette.seafoam, in: Capsule())
-                }.buttonStyle(.plain).accessibilityLabel("Tekne bağlantısı").accessibilityIdentifier("boat-connection")
+                }.buttonStyle(.plain).accessibilityLabel("Tekne bağlantısı").accessibilityIdentifier("boat-connection") }
                 Button { showAbout = true } label: {
-                    Image(systemName: "info.circle").font(.system(size: 20)).foregroundStyle(Palette.secondary)
-                        .frame(width: 44, height: 44)
+                    Image(systemName: "info.circle").font(.system(.title3)).foregroundStyle(Palette.secondary)
+                        .frame(minWidth: 44, minHeight: 44)
                 }.accessibilityLabel("Uygulama hakkında")
             }.padding(.horizontal, 22).padding(.top, 8).padding(.bottom, 10)
                 .frame(maxWidth: 1200)
 
+            if !store.sailingAlerts.isEmpty { SailingAlertBanner(alerts: store.sailingAlerts) }
+
             Group {
                 switch tab {
+                case .boat: BoatConnectionView(embedded: true)
                 case .sail: SailingView().environment(voice)
                 case .scenarios:
                     if store.isLiveMode {
@@ -64,29 +68,33 @@ struct RootView: View {
         .background(Palette.background)
         .tint(Palette.teal)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            HStack(spacing: 8) {
+            ScrollView(.horizontal) { HStack(spacing: 8) {
                 ForEach(AppTab.allCases, id: \.self) { item in
                     Button { withAnimation(.easeInOut(duration: 0.18)) { tab = item } } label: {
                         VStack(spacing: 6) {
-                            Image(systemName: item.icon).font(.system(size: 20, weight: tab == item ? .semibold : .regular))
-                            Text(item.shortLabel).font(.system(size: 10, weight: .semibold))
+                            if !typeSize.isAccessibilitySize { Image(systemName: item.icon).font(.system(.title3, weight: tab == item ? .semibold : .regular)) }
+                            Text(item.shortLabel).font(.system(.caption2, weight: .semibold))
                         }.foregroundStyle(tab == item ? Palette.ink : Palette.secondary)
-                            .frame(maxWidth: .infinity).padding(.vertical, 10)
+                            .frame(maxWidth: .infinity).padding(.horizontal, 8).padding(.vertical, 10)
                             .background(tab == item ? Palette.background : .clear, in: RoundedRectangle(cornerRadius: 12))
-                    }.buttonStyle(.plain).accessibilityIdentifier("tab-\(item.rawValue)")
+                    }.buttonStyle(.plain)
+                        .accessibilityLabel(item.rawValue)
+                        .accessibilityAddTraits(tab == item ? .isSelected : [])
+                        .accessibilityIdentifier("tab-\(item.rawValue)")
                 }
-            }.padding(.horizontal, 20).padding(.top, 9).padding(.bottom, 5)
+            }.frame(minWidth: 320) }.scrollIndicators(.hidden).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 20).padding(.top, 9).padding(.bottom, 5)
                 .frame(maxWidth: 800).background(Palette.surface)
                 .frame(maxWidth: .infinity).background(Palette.surface)
                 .overlay(alignment: .top) { Rectangle().fill(Palette.line).frame(height: 1) }
         }
+        .overlay { if store.lineAlertActive && scenePhase == .active { LineWarningOverlay() } }
         .sheet(isPresented: $showAbout) { AboutView() }
-        .sheet(isPresented: $showConnection) { BoatConnectionView() }
-        .onReceive(timer) { _ in store.tick(); syncVolumeShortcut() }
+        .onReceive(timer) { _ in store.tick(); syncVolumeShortcut(); announceSailingState() }
         .onAppear { syncVolumeShortcut() }
         .onChange(of: store.volumePinArmed) { _, _ in syncVolumeShortcut() }
-        .onChange(of: store.isLiveMode) { _, _ in syncVolumeShortcut() }
-        .onChange(of: showConnection) { _, _ in syncVolumeShortcut() }
+        .onChange(of: store.isLiveMode) { _, _ in announcementGate.reset(); syncVolumeShortcut() }
+        .onChange(of: store.committeePinCoordinate) { _, _ in announcementGate.reset() }
+        .onChange(of: store.portPinCoordinate) { _, _ in announcementGate.reset() }
         .onChange(of: tab) { _, _ in syncVolumeShortcut() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
@@ -99,8 +107,16 @@ struct RootView: View {
         } message: { Text(store.storageMessage ?? "") }
     }
 
+    private func announceSailingState() {
+        guard scenePhase == .active, store.isLiveMode else { return }
+        let newWarning = announcementGate.deliver(alerts: store.sailingAlerts,
+            distance: store.startLineMeasurement?.distanceMeters, distanceSpeech: store.startDistanceSpeech,
+            at: store.telemetryNow, speak: { voice.announce($0) })
+        if newWarning { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
+    }
+
     private func syncVolumeShortcut() {
-        let enabled = scenePhase == .active && tab == .sail && !showConnection
+        let enabled = scenePhase == .active && tab == .sail
             && UIDevice.current.userInterfaceIdiom == .phone
             && store.isLiveMode && store.connection.isRunning && store.volumePinArmed
         guard enabled else { volumeShortcut.stop(); return }
@@ -118,9 +134,9 @@ struct AboutView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    Text("PRUVA").font(.system(size: 24, weight: .bold, design: .monospaced)).foregroundStyle(Palette.ink)
+                    Text("PRUVA").font(.system(.title2, design: .monospaced, weight: .bold)).foregroundStyle(Palette.ink)
                     Text("Yarış parkuru, ölçümler ve kararlar aynı ekranda.")
-                        .font(.system(size: 14)).foregroundStyle(Palette.secondary)
+                        .font(.system(.subheadline)).foregroundStyle(Palette.secondary)
                     Surface {
                         VStack(alignment: .leading, spacing: 12) {
                             Eyebrow(text: "Bu sürüm")

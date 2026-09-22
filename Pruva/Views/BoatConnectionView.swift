@@ -3,6 +3,8 @@ import RaceCore
 import UIKit
 
 struct BoatConnectionView: View {
+    var embedded = false
+    @State private var device = BoatDeviceKind.wifi0183
     @Environment(RaceStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var port = "10110"
@@ -20,6 +22,12 @@ struct BoatConnectionView: View {
                     Label("Teknenin Wi-Fi ağına bağlanın", systemImage: "wifi")
                     Text("GPS ve rüzgâr ölçümleri teknenin NMEA 0183 ağ geçidinden alınır. Telefonun GPS'i kullanılmaz.")
                         .font(.footnote).foregroundStyle(Palette.secondary)
+                }
+                Section("Tekne / cihaz türü") {
+                    Picker("Cihaz", selection: $device) {
+                        ForEach(BoatDeviceKind.allCases) { kind in Text(kind.rawValue).tag(kind) }
+                    }.accessibilityIdentifier("boat-device-kind")
+                    Text(device.guidance).font(.footnote)
                 }
                 Section("NMEA bağlantısı") {
                     Picker("Bağlantı", selection: $store.connectionSettings.transport) {
@@ -55,6 +63,10 @@ struct BoatConnectionView: View {
                             .font(.footnote).foregroundStyle(Palette.secondary)
                     }
                 }
+                Section("Bağlantı yardımcısı") {
+                    Text(store.connectionHelp).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("connection-help")
+                }
                 if store.isLiveMode {
                     Section("Ölçümler") { LiveInstrumentStatusView() }
                 }
@@ -77,14 +89,14 @@ struct BoatConnectionView: View {
                 if store.isLiveMode || store.committeePinCoordinate != nil || store.portPinCoordinate != nil {
                     Section("Start hattı") {
                         Button("Komite · starboard pin al") {
-                            startMessage = store.captureStartPin(.committee)
+                            startMessage = store.captureStartPin(.committee).message
                         }.disabled(store.freshPosition == nil).accessibilityIdentifier("connection-start-committee")
                         Button("Şamandıra · port pin al") {
-                            startMessage = store.captureStartPin(.port)
+                            startMessage = store.captureStartPin(.port).message
                         }.disabled(store.freshPosition == nil).accessibilityIdentifier("connection-start-port")
                         Text(store.startLineLengthMeters.map { "Start hattı · \(Int($0)) m" }
                              ?? (store.committeePinCoordinate != nil || store.portPinCoordinate != nil ? "Bir pin alındı" : "İki pin bekleniyor"))
-                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                            .font(.system(.caption, design: .monospaced, weight: .semibold))
                             .foregroundStyle(Palette.teal)
                         if let startMessage { Text(startMessage).font(.footnote).foregroundStyle(Palette.secondary) }
                         if store.isLiveMode && UIDevice.current.userInterfaceIdiom == .phone {
@@ -107,8 +119,9 @@ struct BoatConnectionView: View {
                         })) {
                             Text("Orsa").tag(RaceLeg.upwind); Text("Pupa").tag(RaceLeg.downwind)
                         }
-                        HStack { Text("Hedef rüzgâr açısı"); Spacer(); Text("\(Int(store.input.targetAngle))°") }
+                        AdaptiveStack { Text("Hedef rüzgâr açısı"); Spacer(); Text("\(Int(store.input.targetAngle))°") }
                         Slider(value: $store.input.targetAngle, in: store.input.leg == .upwind ? 30...65 : 110...175, step: 1)
+                            .accessibilityLabel("Hedef rüzgâr açısı").accessibilityValue("\(Int(store.input.targetAngle)) derece")
                         Text("Layline için hedef açı teknenizin polarına göre seçilir. Bu modelde akıntı sıfır varsayılır; yer hızı (SOG) suya göre hızın (STW) yerine geçirilmez.")
                             .font(.footnote).foregroundStyle(Palette.secondary)
                     }
@@ -119,7 +132,7 @@ struct BoatConnectionView: View {
             }
             .tint(Palette.teal)
             .navigationTitle("Tekne bağlantısı").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Bitti") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { if !embedded { Button("Bitti") { dismiss() } } } }
             .onAppear {
                 port = String(store.connectionSettings.port)
                 markName = store.markName
@@ -151,26 +164,43 @@ struct LiveInstrumentStatusView: View {
             status("Suya göre hız · STW", value: store.freshWaterSpeed.map { "\(decimal($0.value)) kn" }, at: store.freshWaterSpeed?.timestamp)
             status("Gerçek rüzgâr", value: store.liveWind.map { "\(degrees($0.value.direction)) · \(decimal($0.value.speed)) kn" }, at: store.liveWind?.timestamp)
             if let wind = store.liveWind {
-                Text("Rüzgâr kaynağı: \(wind.value.source)").font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                Text("Rüzgâr kaynağı: \(wind.value.source)").font(.system(.caption2)).foregroundStyle(Palette.secondary)
             } else if let apparent = store.telemetry.apparentWind, apparent.isFresh(at: store.telemetryNow), store.connection.isRunning {
                 Text("Görünen rüzgâr: \(degrees(apparent.value.angle)) · \(decimal(apparent.value.speed)) kn. Gerçek rüzgâr yönü olarak kullanılmaz.")
-                    .font(.system(size: 11)).foregroundStyle(Palette.gold)
+                    .font(.system(.caption)).foregroundStyle(Palette.gold)
             }
             Text("Güncellik sınırı 15 sn · Veriler bu cihazda işlenir")
-                .font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                .font(.system(.caption2)).foregroundStyle(Palette.secondary)
         }
     }
 
     private func status(_ name: String, value: String?, at date: Date?) -> some View {
-        HStack(alignment: .top) {
+        AdaptiveStack(alignment: .top) {
             Circle().fill(value == nil ? Palette.gold : Palette.teal).frame(width: 5, height: 5).padding(.top, 5)
             Text(name).foregroundStyle(Palette.secondary)
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 Text(value ?? "Veri bekleniyor").foregroundStyle(value == nil ? Palette.gold : Palette.ink)
                     .monospacedDigit().accessibilityIdentifier("live-\(name)")
-                if let date { Text("\(max(0, Int(store.telemetryNow.timeIntervalSince(date)))) sn önce").font(.system(size: 9)).foregroundStyle(Palette.secondary) }
+                if let date { Text("\(max(0, Int(store.telemetryNow.timeIntervalSince(date)))) sn önce").font(.system(.caption2)).foregroundStyle(Palette.secondary) }
             }
-        }.font(.system(size: 12))
+        }.font(.system(.caption))
+    }
+}
+
+private enum BoatDeviceKind: String, CaseIterable, Identifiable {
+    case wifi0183 = "NMEA 0183 · Wi-Fi / Ethernet ağ geçidi"
+    case nmea2000 = "NMEA 2000 · ağ geçidi üzerinden"
+    case other = "Diğer cihaz · Bluetooth / USB / üretici sistemi"
+    var id: String { rawValue }
+    var guidance: String {
+        switch self {
+        case .wifi0183:
+            "Marka bağımsız NMEA 0183 metin akışı için TCP veya UDP seçin. Ağ geçidinizin adresini ve portunu kullanın."
+        case .nmea2000:
+            "NMEA 2000 verilerini desteklenen NMEA 0183 cümlelerine dönüştüren Wi-Fi ağ geçidi gerekir. Doğrudan CAN / PGN bağlantısı desteklenmez. Dönüştürücünün TCP veya UDP çıkışını aşağıya girin."
+        case .other:
+            "Doğrudan Bluetooth, USB ve üreticiye özel protokoller desteklenmez. Cihaz NMEA 0183 TCP veya UDP çıkışı sunuyorsa bu çıkışı kullanın; aksi halde uyumlu bir dönüştürücü gerekir."
+        }
     }
 }

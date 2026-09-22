@@ -2,7 +2,7 @@ name: Pruva
 options:
   bundleIdPrefix: com.pruva
   deploymentTarget:
-    iOS: '17.0'
+    iOS: '26.0'
 packages:
   RaceCore:
     path: .

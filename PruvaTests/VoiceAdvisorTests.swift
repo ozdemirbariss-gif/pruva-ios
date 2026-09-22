@@ -12,6 +12,7 @@ final class VoiceAdvisorTests: XCTestCase {
         XCTAssertEqual(VoiceAdvisor.intent(for: "Pin starboard"), .committeePin)
         XCTAssertEqual(VoiceAdvisor.intent(for: "Şamandıra port pin"), .portPin)
         XCTAssertEqual(VoiceAdvisor.intent(for: "Pin end"), .portPin)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "Start mesafesi"), .startDistance)
 
         let wind = VoiceAdvisor.advice(for: "Rüzgâr açtı", analysis: analysis,
                                        readiness: nil, measuredShift: 7)
@@ -23,6 +24,30 @@ final class VoiceAdvisorTests: XCTestCase {
                                           readiness: "Gerçek rüzgâr bekleniyor.", measuredShift: nil)
         XCTAssertEqual(missing.title, "ÖLÇÜM EKSİK")
         XCTAssertTrue(missing.spoken.contains("Gerçek rüzgâr bekleniyor"))
+    }
+
+    func testNoisyReadCommandsAndAmbiguousOrNegativeCommands() {
+        XCTAssertEqual(VoiceAdvisor.intent(for: "rüzga aç"), .windLift)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "rüzgar açmadı"), .unknown)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "komite pin alma"), .unknown)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "komite pin almadım"), .unknown)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "komite port pin"), .unknown)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "rüzgar açtı daraldı"), .unknown)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "komite ping"), .unknown)
+        XCTAssertEqual(VoiceAdvisor.intent(for: "kararsızım"), .unknown)
+    }
+
+    func testBriefingRejectsInventedAndDuplicateRecordIndices() {
+        XCTAssertEqual(OnDeviceLanguageAdvisor.validatedIndices([-1, 99, 1, 1, 0, 2, 3], count: 4), [1, 0, 2])
+        XCTAssertEqual(OnDeviceLanguageAdvisor.validatedIndices([0], count: 0), [])
+    }
+
+    func testDisabledLanguageModelUsesDeterministicAdvice() async {
+        let store = RaceStore(storageURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let expected = store.respondToCommand("durum")
+        let actual = await store.interpretCommand("durum")
+        XCTAssertEqual(actual?.detail, expected.detail)
+        XCTAssertFalse(store.isInterpretingCommand)
     }
 
     func testVoicePinCommandStillRequiresFreshBoatGPS() {

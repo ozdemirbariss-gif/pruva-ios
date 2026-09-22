@@ -14,6 +14,7 @@ struct MapPoint: Equatable, Sendable {
 /// A north-up race diagram. Wind is FROM true degrees; all speeds are in knots.
 /// Downwind angles may be an absolute TWA (145°) or the angle off dead downwind (35°).
 struct TacticalMapView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var boat: MapPoint
     var mark: MapPoint
@@ -116,13 +117,23 @@ struct TacticalMapView: View {
                     ? "\(boatAvailable ? "Güncel GPS konumu" : "GPS bekleniyor"). \(windAvailable ? "Rüzgâr \(Int(normalized(windDirection))) derece" : "Rüzgâr bekleniyor"). \(showMark ? "Şamandıra tanımlı" : "Şamandıra ekleyin"). \(startCommittee != nil && startPort != nil ? "Start hattı tanımlı" : "Start hattı eksik")."
                     : "Şamandıraya \(Int(distanceToMark)) metre. \(isStarboard ? "Sancak" : "İskele") kontra. Rüzgâr \(Int(normalized(windDirection))) derece.")
 
-                Group {
+                .accessibilityActions {
+                    if !sensorMode, let onBoatMove {
+                        Button("Tekneyi kuzeye taşı") { onBoatMove(MapPoint(x: boat.x, y: boat.y + 25)) }
+                        Button("Tekneyi güneye taşı") { onBoatMove(MapPoint(x: boat.x, y: boat.y - 25)) }
+                        Button("Tekneyi doğuya taşı") { onBoatMove(MapPoint(x: boat.x + 25, y: boat.y)) }
+                        Button("Tekneyi batıya taşı") { onBoatMove(MapPoint(x: boat.x - 25, y: boat.y)) }
+                    }
+                }
+
+                if !typeSize.isAccessibilitySize { Group {
                     if windAvailable { windBadge }
-                    else { Text("RÜZGÂR BEKLENİYOR").font(.system(size: 9, weight: .semibold)).foregroundStyle(MapPalette.slate) }
+                    else { Text("RÜZGÂR BEKLENİYOR").font(.system(.caption2, weight: .semibold)).foregroundStyle(MapPalette.slate) }
                 }
                     .padding(.leading, 19)
                     .padding(.top, 18)
                     .allowsHitTesting(false)
+                    .accessibilityHidden(true)
 
                 VStack {
                     HStack {
@@ -134,6 +145,8 @@ struct TacticalMapView: View {
                 }
                 .padding(18)
                 .allowsHitTesting(false)
+                .accessibilityHidden(true)
+                }
             }
             .background(MapPalette.water)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -247,14 +260,14 @@ struct TacticalMapView: View {
                 .background(Palette.surface.opacity(0.9), in: Circle())
             VStack(alignment: .leading, spacing: 3) {
                 Text("RÜZGÂR")
-                    .font(.system(size: 8, weight: .semibold))
+                    .font(.system(.caption2, weight: .semibold))
                     .tracking(1.7)
                     .foregroundStyle(MapPalette.slate.opacity(0.5))
                 Text(String(format: "%03.0f°", normalized(windDirection)))
-                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                    .font(.system(.body, design: .monospaced, weight: .semibold))
                     .monospacedDigit()
                     .foregroundStyle(MapPalette.slate)
-                if let windSpeed { Text(String(format: "%.1f kn", windSpeed)).font(.system(size: 10, weight: .medium)).foregroundStyle(MapPalette.teal) }
+                if let windSpeed { Text(String(format: "%.1f kn", windSpeed)).font(.system(.caption2, weight: .medium)).foregroundStyle(MapPalette.teal) }
             }
         }
     }
@@ -262,10 +275,10 @@ struct TacticalMapView: View {
     private var northIndicator: some View {
         VStack(spacing: 3) {
             Text("N")
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(.caption2, weight: .bold))
                 .tracking(0.8)
             Image(systemName: "location.north.fill")
-                .font(.system(size: 14, weight: .regular))
+                .font(.system(.subheadline, weight: .regular))
         }
         .foregroundStyle(MapPalette.slate.opacity(0.5))
         .frame(width: 22, height: 37)
@@ -276,7 +289,7 @@ struct TacticalMapView: View {
         return HStack(alignment: .bottom, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(Int(meters)) m")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(.caption2, weight: .medium))
                     .monospacedDigit()
                 ScaleBar()
                     .stroke(MapPalette.slate.opacity(0.42), lineWidth: 1)
@@ -298,7 +311,7 @@ struct TacticalMapView: View {
         HStack(spacing: 4) {
             Capsule().fill(color.opacity(0.7)).frame(width: 12, height: 2)
             Text(title)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(.caption2, weight: .medium))
                 .foregroundStyle(MapPalette.slate.opacity(0.6))
         }
     }
@@ -419,7 +432,7 @@ struct TacticalMapView: View {
         context.fill(buoy, with: .color(MapPalette.gold))
         context.stroke(buoy, with: .color(.white), lineWidth: 3)
         context.draw(
-            Text(isDownwind ? "2" : "1").font(.system(size: 11, weight: .bold)).foregroundColor(.white),
+            Text(isDownwind ? "2" : "1").font(.system(.caption, weight: .bold)).foregroundColor(.white),
             at: point
         )
         drawPill(
@@ -464,7 +477,7 @@ struct TacticalMapView: View {
 
     private func drawPill(text: String, at point: CGPoint, context: inout GraphicsContext) {
         let label = context.resolve(
-            Text(text).font(.system(size: 9, weight: .semibold)).tracking(1.1).foregroundColor(MapPalette.slate.opacity(0.7))
+            Text(text).font(.system(.caption2, weight: .semibold)).tracking(1.1).foregroundColor(MapPalette.slate.opacity(0.7))
         )
         let measured = label.measure(in: CGSize(width: 170, height: 20))
         let bounds = CGRect(x: point.x - measured.width / 2 - 8, y: point.y - 10, width: measured.width + 16, height: 20)

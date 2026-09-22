@@ -145,7 +145,7 @@ public struct RaceAnalysis: Codable, Equatable, Sendable {
     public let expectedGainSeconds: Double
     public let costSeconds: Double
     public let reasons: [String]
-    public let confidence: String
+    public let confidence: AnalysisConfidence
     public let geometry: RaceGeometry
 
     public init(recommendation: Recommendation, title: String, message: String, trigger: String,
@@ -153,7 +153,7 @@ public struct RaceAnalysis: Codable, Equatable, Sendable {
                 vmg: Double, vmc: Double, distanceToMark: Double, etaSeconds: Double?,
                 currentTackSeconds: Double?, otherTackSeconds: Double?, laylineSeconds: Double?,
                 isLongTack: Bool, isOverstood: Bool, expectedGainSeconds: Double, costSeconds: Double,
-                reasons: [String], confidence: String, geometry: RaceGeometry) {
+                reasons: [String], confidence: AnalysisConfidence, geometry: RaceGeometry) {
         self.recommendation = recommendation
         self.title = title
         self.message = message
@@ -177,4 +177,9 @@ public struct RaceAnalysis: Codable, Equatable, Sendable {
         self.confidence = confidence
         self.geometry = geometry
     }
+}
+
+/// Model quality category, not a calibrated probability.
+public enum AnalysisConfidence: String, Codable, CaseIterable, Sendable {
+    case low = "Düşük", medium = "Orta", high = "Yüksek"
 }

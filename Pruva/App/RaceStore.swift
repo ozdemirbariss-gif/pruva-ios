@@ -3,6 +3,11 @@ import Observation
 import RaceCore
 
 enum CrewRole: String, CaseIterable { case tactician = "Taktisyen", navigator = "Navigatör" }
+struct PinCaptureResult: Equatable {
+    let message: String
+    let succeeded: Bool
+}
+
 enum StartEndpoint { case committee, port }
 
 struct DecisionEntry: Identifiable, Codable {
@@ -44,7 +49,13 @@ final class RaceStore {
     var committeePinCoordinate: GeoCoordinate?
     var portPinCoordinate: GeoCoordinate?
     var pinFeedback: String?
+    var speedDropMonitor = SpeedDropMonitor()
+    var laylineProximity = ProximityLatch()
+    var startProximity = ProximityLatch()
     var voiceAdvice: VoiceAdvice?
+    var languageModelEnabled = false
+    var languageModelMessage: String?
+    var isInterpretingCommand = false
     var volumePinArmed = false
     private var localOrigin: GeoCoordinate?
     private var simulationInput = DemoScenario.longTack.input
@@ -75,6 +86,7 @@ final class RaceStore {
         guard !testing, let data = try? Data(contentsOf: fileURL) else { return }
         do {
             let saved = try JSONDecoder().decode(SavedState.self, from: data)
+            languageModelEnabled = saved.languageModelEnabled ?? false
             input = saved.input
             entries = saved.entries
             scenarioName = saved.scenarioName
@@ -88,6 +100,7 @@ final class RaceStore {
     }
 
     func load(_ scenario: DemoScenario) {
+        resetSailingAlerts()
         leaveLiveMode()
         isPlaying = false
         input = scenario.input
@@ -106,6 +119,7 @@ final class RaceStore {
 
     func tick() {
         telemetryNow = Date()
+        defer { updateSailingAlerts() }
         if isLiveMode { updateLiveInput(); return }
         guard isPlaying else { return }
         replayStep += 1
@@ -131,6 +145,7 @@ final class RaceStore {
     }
 
     func restore(_ entry: DecisionEntry) {
+        resetSailingAlerts()
         leaveLiveMode()
         isPlaying = false
         input = entry.input
@@ -144,7 +159,7 @@ final class RaceStore {
             let data = try JSONEncoder().encode(SavedState(input: isLiveMode ? simulationInput : input, entries: entries,
                 scenarioName: isLiveMode ? simulationName : scenarioName, connectionSettings: connectionSettings,
                 markCoordinate: markCoordinate, markName: markName,
-                committeePinCoordinate: committeePinCoordinate, portPinCoordinate: portPinCoordinate))
+                committeePinCoordinate: committeePinCoordinate, portPinCoordinate: portPinCoordinate, languageModelEnabled: languageModelEnabled))
             try data.write(to: fileURL, options: .atomic)
             storageMessage = nil
             return true
@@ -213,6 +228,7 @@ final class RaceStore {
     }
 
     func connectBoat() {
+        resetSailingAlerts()
         if !isLiveMode { simulationInput = input; simulationName = scenarioName }
         isLiveMode = true
         isPlaying = false
@@ -229,6 +245,7 @@ final class RaceStore {
     }
 
     func disconnectBoat() {
+        resetSailingAlerts()
         connection.stop()
         telemetry.reset()
         liveWindSamples = []
@@ -249,7 +266,7 @@ final class RaceStore {
     func receiveNMEA(_ sentence: String, at date: Date) {
         guard isLiveMode, connection.isRunning else { return }
         telemetryNow = date
-        if telemetry.consume(sentence, at: date) { updateLiveInput() }
+        if telemetry.consume(sentence, at: date) { updateLiveInput(); updateSailingAlerts() }
     }
 
     func updateLiveInput() {
@@ -286,7 +303,7 @@ final class RaceStore {
         persist()
     }
 
-    @discardableResult func captureStartPin(_ endpoint: StartEndpoint) -> String {
+    @discardableResult func captureStartPin(_ endpoint: StartEndpoint) -> PinCaptureResult {
         guard isLiveMode, let fix = freshPosition else {
             return pinResult("Güncel tekne GPS konumu bekleniyor.")
         }
@@ -304,27 +321,36 @@ final class RaceStore {
         case .committee: committeePinCoordinate = fix.value
         case .port: portPinCoordinate = fix.value
         }
-        persist()
-        return pinResult(endpoint == .committee ? "Komite · starboard pini alındı." : "Şamandıra · port pini alındı.")
+        updateSailingAlerts()
+        let saved = persist()
+        guard saved else { return pinResult("Pin bellekte alındı ancak saklanamadı. Yeniden deneyin.") }
+        return pinResult(endpoint == .committee ? "Komite · starboard pini alındı." : "Şamandıra · port pini alındı.", succeeded: true)
     }
 
-    private func pinResult(_ message: String) -> String {
+    private func pinResult(_ message: String, succeeded: Bool = false) -> PinCaptureResult {
         pinFeedback = message
-        return message
+        return PinCaptureResult(message: message, succeeded: succeeded)
     }
 
     func clearStartLine() {
         committeePinCoordinate = nil
         portPinCoordinate = nil
         pinFeedback = nil
+        updateSailingAlerts()
         persist()
     }
 
     func respondToCommand(_ command: String) -> VoiceAdvice {
         let intent = VoiceAdvisor.intent(for: command)
+        if intent == .startDistance {
+            let advice = VoiceAdvice(command: command, title: "START MESAFESİ", detail: startDistanceSpeech, spoken: startDistanceSpeech, symbol: "ruler", tone: startLineMeasurement == nil ? .caution : .information)
+            voiceAdvice = advice
+            return advice
+        }
         if intent == .committeePin || intent == .portPin {
-            let message = captureStartPin(intent == .committeePin ? .committee : .port)
-            let succeeded = message.contains("alındı")
+            let result = captureStartPin(intent == .committeePin ? .committee : .port)
+            let succeeded = result.succeeded
+            let message = result.message
             let advice = VoiceAdvice(command: command, title: succeeded ? "PIN ALINDI" : "PIN ALINAMADI",
                                      detail: message, spoken: message,
                                      symbol: succeeded ? "mappin.circle.fill" : "location.slash",
@@ -349,4 +375,61 @@ private struct SavedState: Codable {
     var markName: String? = nil
     var committeePinCoordinate: GeoCoordinate? = nil
     var portPinCoordinate: GeoCoordinate? = nil
+    var languageModelEnabled: Bool? = nil
+}
+
+extension RaceStore {
+    /// Diagnostics use state and counters; never parse localized error messages.
+    var connectionHelp: String {
+        if connection.lastError != nil {
+            return "1. iPhone/iPad'i teknenin Wi-Fi ağına bağlayın.\n2. Ayarlar'da Pruva için Yerel Ağ iznini kontrol edin.\n3. Ağ geçidinin protokolünü, TCP adresini ve portunu doğrulayın; yukarıdaki hatayı giderip yeniden bağlanın."
+        }
+        if !connection.isRunning {
+            return "Cihaz türünü seçin, ağ geçidinin TCP/UDP ayarlarını girin ve Tekneye bağlan'a dokunun. İnternet bağlantısı gerekmez."
+        }
+        if connection.receivedSentences == 0 {
+            return connectionSettings.transport == .udp
+                ? "Henüz cümle alınmadı. Ağ geçidinin UDP hedefi bu cihazın Wi-Fi IP adresi ve seçtiğiniz port olmalı. Unicast çıkış kullanın."
+                : "Henüz cümle alınmadı. Ağ geçidinde NMEA 0183 metin çıkışının açık olduğunu ve TCP portunu kontrol edin."
+        }
+        if telemetry.acceptedSentenceCount == 0 {
+            return "Veri geliyor ancak kullanılabilir ölçüm yok. NMEA 0183 cümle türlerini ve checksum ayarını kontrol edin. GPS için RMC/GGA, gerçek pruva için HDT/VHW, su hızı için VHW, rüzgâr için MWD veya MWV gerekir."
+        }
+        return liveReadinessMessage ?? "Gerekli ölçümler güncel. Seyir sekmesinde parkuru ve ölçüm kaynaklarını kontrol edin."
+    }
+}
+
+
+extension RaceStore {
+    func interpretCommand(_ command: String) async -> VoiceAdvice? {
+        guard !isInterpretingCommand else { return nil }
+        guard languageModelEnabled else { return respondToCommand(command) }
+        // Exact write commands stay on the synchronous GPS capture path.
+        let exact = VoiceAdvisor.intent(for: command)
+        if exact == .committeePin || exact == .portPin || exact == .startDistance { return respondToCommand(command) }
+        let advisor = OnDeviceLanguageAdvisor()
+        if let reason = advisor.unavailableReason {
+            languageModelMessage = reason
+            return respondToCommand(command)
+        }
+        isInterpretingCommand = true
+        defer { isInterpretingCommand = false }
+        do {
+            let intent = try await advisor.intent(for: command)
+            guard !Task.isCancelled else { return nil }
+            // Analyze current telemetry after inference, never the pre-request snapshot.
+            telemetryNow = Date()
+            if isLiveMode { updateLiveInput() }
+            let advice = VoiceAdvisor.advice(for: command, analysis: analysis,
+                readiness: isLiveMode ? liveReadinessMessage : nil,
+                measuredShift: isLiveMode ? relativeWind : nil, interpretedIntent: intent)
+            languageModelMessage = "Komut cihazda yorumlandı; karar ve sayılar RaceEngine hesabıdır."
+            voiceAdvice = advice
+            return advice
+        } catch {
+            guard !Task.isCancelled else { return nil }
+            languageModelMessage = "Cihaz içi yorumlama tamamlanamadı. Standart komut yolu kullanıldı."
+            return respondToCommand(command)
+        }
+    }
 }

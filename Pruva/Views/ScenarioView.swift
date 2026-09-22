@@ -14,14 +14,14 @@ struct ScenarioView: View {
                         ForEach(Array(DemoScenario.allCases.enumerated()), id: \.element.id) { index, scenario in
                             Button { store.load(scenario) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    HStack {
-                                        Text(String(format: "%02d", index + 1)).font(.system(size: 11, weight: .medium, design: .monospaced))
+                                    AdaptiveStack {
+                                        Text(String(format: "%02d", index + 1)).font(.system(.caption, design: .monospaced, weight: .medium))
                                         Spacer()
                                         Image(systemName: store.scenarioName == scenario.title ? "checkmark.circle.fill" : "arrow.up.right")
                                     }.foregroundStyle(Palette.teal)
-                                    Text(scenario.title).font(.system(size: 17, weight: .semibold)).foregroundStyle(Palette.ink)
+                                    Text(scenario.title).font(.system(.body, weight: .semibold)).foregroundStyle(Palette.ink)
                                         .frame(minHeight: 42, alignment: .topLeading)
-                                }.padding(18).frame(width: 190, height: 112, alignment: .topLeading)
+                                }.padding(18).frame(width: 230, alignment: .topLeading).frame(minHeight: 112, alignment: .topLeading)
                                     .background(store.scenarioName == scenario.title ? Palette.seafoam : Palette.surface, in: RoundedRectangle(cornerRadius: 14))
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(store.scenarioName == scenario.title ? Palette.teal : Palette.line, lineWidth: 1))
                             }.buttonStyle(.plain).accessibilityIdentifier("scenario-\(scenario.rawValue)")
@@ -33,10 +33,10 @@ struct ScenarioView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Eyebrow(text: "Karar şimdi")
                         Text("Şamandıra · \(Int(store.analysis.distanceToMark)) m")
-                            .font(.system(size: 11)).foregroundStyle(Palette.secondary).accessibilityIdentifier("scenario-distance")
-                        Text(store.analysis.title).font(.system(size: 23, weight: .semibold)).accessibilityIdentifier("scenario-decision")
-                        Text(store.analysis.message).font(.system(size: 13)).foregroundStyle(Palette.secondary).lineSpacing(3)
-                        HStack {
+                            .font(.system(.caption)).foregroundStyle(Palette.secondary).accessibilityIdentifier("scenario-distance")
+                        Text(store.analysis.title).font(.system(.title2, weight: .semibold)).accessibilityIdentifier("scenario-decision")
+                        Text(store.analysis.message).font(.system(.footnote)).foregroundStyle(Palette.secondary).lineSpacing(3)
+                        AdaptiveStack {
                             comparisonMetric("TAHMİNİ KAZANÇ", value: store.analysis.expectedGainSeconds)
                             Spacer()
                             comparisonMetric("MANEVRA MALİYETİ", value: store.analysis.costSeconds)
@@ -56,10 +56,10 @@ struct ScenarioView: View {
                             store.persist()
                         })) {
                             Text("Orsa").tag(RaceLeg.upwind); Text("Pupa").tag(RaceLeg.downwind)
-                        }.pickerStyle(.segmented)
+                        }.pickerStyle(.menu)
                         Picker("Kontra", selection: $store.input.tack) {
                             Text("Sancak kontra").tag(Tack.starboard); Text("İskele kontra").tag(Tack.port)
-                        }.pickerStyle(.segmented)
+                        }.pickerStyle(.menu)
                         control("Ortalamaya göre shift", value: Binding(get: { store.relativeWind }, set: { store.isPlaying = false; store.relativeWind = $0; store.recordWind() }), range: -30...30, unit: "°", step: 1)
                         control("Ortalama rüzgâr yönü", value: $store.input.meanWindDirection, range: 0...359, unit: "°", step: 1)
                         control("Gerçek rüzgâr hızı", value: $store.input.windSpeed, range: 3...35, unit: "kn")
@@ -72,12 +72,12 @@ struct ScenarioView: View {
                         Eyebrow(text: "Manevra & belirsizlik")
                         control("Bir manevranın kaybı", value: $store.input.maneuverLossSeconds, range: 2...30, unit: "sn", step: 1)
                         Stepper("Ek manevra sayısı: \(store.input.additionalManeuvers)", value: $store.input.additionalManeuvers, in: 1...4)
-                            .font(.system(size: 13))
+                            .font(.system(.footnote))
                         control("Beklenen shift süresi", value: $store.input.expectedShiftDuration, range: 10...600, unit: "sn", step: 10)
                         control("Rüzgâr belirsizliği · ±", value: $store.input.windUncertainty, range: 0...15, unit: "°", step: 1)
                         control("Diğer kontrada hız avantajı", value: $store.input.pressureAdvantage, range: -20...30, unit: "%", step: 1)
-                        Toggle("Mevcut kontrada kirli hava", isOn: $store.input.dirtyAir).font(.system(size: 13))
-                        Toggle("Son yaklaşma üzerindeyiz", isOn: $store.input.finalApproach).font(.system(size: 13))
+                        Toggle("Mevcut kontrada kirli hava", isOn: $store.input.dirtyAir).font(.system(.footnote))
+                        Toggle("Son yaklaşma üzerindeyiz", isOn: $store.input.finalApproach).font(.system(.footnote))
                     }
                 }
                 Surface {
@@ -96,20 +96,21 @@ struct ScenarioView: View {
 
     private func comparisonMetric(_ label: String, value: Double) -> some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text(label).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Palette.secondary)
-            Text("\(decimal(value)) sn").font(.system(size: 24, weight: .semibold, design: .monospaced)).foregroundStyle(Palette.teal)
+            Text(label).font(.system(.caption2, weight: .semibold)).tracking(1).foregroundStyle(Palette.secondary)
+            Text("\(decimal(value)) sn").font(.system(.title2, design: .monospaced, weight: .semibold)).foregroundStyle(Palette.teal)
         }
     }
 
     private func control(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, unit: String, step: Double = 0.1) -> some View {
         VStack(spacing: 8) {
-            HStack {
-                Text(title).font(.system(size: 13)).foregroundStyle(Palette.ink)
+            AdaptiveStack {
+                Text(title).font(.system(.footnote)).foregroundStyle(Palette.ink)
                 Spacer()
                 Text("\(step >= 1 ? String(format: "%.0f", value.wrappedValue) : decimal(value.wrappedValue)) \(unit)")
-                    .font(.system(size: 13, weight: .semibold, design: .monospaced)).monospacedDigit().foregroundStyle(Palette.teal)
+                    .font(.system(.footnote, design: .monospaced, weight: .semibold)).monospacedDigit().foregroundStyle(Palette.teal)
             }
             Slider(value: value, in: range, step: step).accessibilityLabel(title)
+                .accessibilityValue("\(decimal(value.wrappedValue)) \(unit)")
         }
     }
 }

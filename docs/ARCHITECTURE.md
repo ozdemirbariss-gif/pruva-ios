@@ -6,7 +6,7 @@ Pruva, taktisyen ile navigatörün aynı yarış durumunu görüp kararın gerek
 
 | Alan | Tercih | Gerekçe |
 | --- | --- | --- |
-| Platform | iOS 17+, SwiftUI | iPhone ve iPad için tek yerel arayüz; Apple araçlarıyla derlenebilir proje |
+| Platform | iOS 26+, SwiftUI | iPhone ve iPad için tek yerel arayüz; Apple araçlarıyla derlenebilir proje |
 | Hesap | Yerel Swift paketi `RaceCore` | Geometriyi ve öneri kurallarını arayüzden bağımsız, deterministik test etmek |
 | Durum | `@Observable` uygulama deposu | Senaryo, kullanıcı ayarları ve seçimi tek yerde tutmak; türetilmiş sonuçları aynı girdiden üretmek |
 | Kayıt | Uygulama sandbox'ında JSON | Hesapsız, sunucusuz başlangıç; küçük ayar ve kayıtlar için okunabilir yerel veri |
@@ -62,3 +62,13 @@ NMEA 2000 için iPhone'un doğrudan CAN hattına bağlandığı varsayılmaz; de
 Çekirdek testleri; 359°/1° ortalaması, kontra işaretleri, sabit koşullardaki geometri, akıntı etkisi, negatif etap süreleri, sıfır hız, manevra sayısı farkı ve kalan etapla sınırlı tahmin ufkuna odaklanır. Final yaklaşım ile parkurun dış kenarında olma farklı regresyon örnekleridir. Bu testler sensör doğruluğunu kanıtlamaz.
 
 iOS derlemesine ek olarak simülatörde kaydırıcılar, senaryo geçişi, ayar kalıcılığı ve yatay/dikey taşmalar kontrol edilir. Gerçek deniz kullanımına geçiş için ayrıca fiziksel cihaz, düşük güç, güneş altında okunabilirlik, ıslak el etkileşimi ve cihaz hareketi testleri gerekir. Bunlar ilk masaüstü/simülatör doğrulamasının yerine geçmez.
+
+## 19 Eylül 2026 — dil katmanı ve sonraki ölçüm işleri
+
+RaceEngine deterministiktir; ML/LLM karar girdilerini veya öneri hesabını değiştirmez. `AnalysisConfidence` kapalı enum'dır. `PinCaptureResult` metin ile başarı bilgisini ayırır; saklama hatası başarı olarak bildirilmez.
+
+Foundation Models adaptörü yalnızca kapalı okuma intent'i veya doğrulanan kayıt indeksleri üretir. Sayısal serbest metin çıktısı gösterilmez. Komut yanıtı çıkarımdan sonra güncel telemetriyle yeniden hesaplanır. Model kullanılamadığında, Türkçe desteklenmediğinde veya üretim hata verdiğinde standart komut yolu korunur. Kayıt özeti gerçek yarış performansı değerlendirmesi değildir; kayıtlar yapılan manevraları veya kaybedilen süreyi kanıtlamaz.
+
+Polar regresyonu ve salınım periyodu henüz uygulanmadı. Mevcut kayıtlar düzenli örneklenmiş oturum değildir; rüzgâr geçmişi en fazla iki dakika tutar. Önce tekne/yelken kimliği, oturum kimliği, zaman damgalı STW/gerçek pruva/gerçek rüzgâr, manevra ve veri kalite işaretleriyle yerel kayıt gerekir. Polar için eğitimden ayrı oturumlarla hata analizi, hız/açı kapsaması ve kalibrasyon sürümü gereklidir. Periyot için birkaç tam döngü, düzensiz örnekleme ve eksik veri testleri gerekir. Yeterli veri yokken süre veya öğrenilmiş polar gösterilmemelidir. Öğrenilmiş değerlerin motora uygulanması ayrıca açık kullanıcı seçimi gerektirir.
+
+Foundation Models entegrasyonu [Apple'ın yapılandırılmış üretim API'sini](https://developer.apple.com/documentation/foundationmodels/generating-swift-data-structures-with-guided-generation) kullanır. Cihazda model kullanılabilirliği ve Türkçe dil desteği ayrı kontrol edilir; minimum iOS 26 tek başına AI özelliğinin kullanılabileceği anlamına gelmez.

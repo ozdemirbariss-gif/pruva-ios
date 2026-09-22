@@ -33,11 +33,13 @@ Bu ekran görüntüleri simülasyon akışını gösterir.
 
 ## Xcode'da çalıştırma
 
+Gereksinim: Xcode 26+, iOS/iPadOS 26+. RaceCore paketi eski platform hedeflerini korur.
+
 1. `Pruva.xcodeproj` dosyasını Xcode ile açın.
 2. `Pruva` scheme'ini ve bir iPhone/iPad simülatörünü seçin.
 3. **Run**. Harici paket, sunucu, hesap veya API anahtarı gerekmez.
 
-Minimum hedef **iOS / iPadOS 17**; Swift 5.9 veya üstü. Fiziksel cihaz için Signing & Capabilities altında kendi Apple geliştirme takımınızı seçin. App Store / TestFlight dağıtımı bu depoya push etmekten ayrı bir adımdır; bu çalışma kapsamında yapılmadı.
+Minimum uygulama hedefi **iOS / iPadOS 26**; fiziksel cihaz için Signing & Capabilities altında kendi Apple geliştirme takımınızı seçin. App Store / TestFlight dağıtımı bu depoya push etmekten ayrı bir adımdır; bu çalışma kapsamında yapılmadı.
 
 Proje tanımını yeniden üretmek gerekirse, kurulu [XcodeGen](https://github.com/yonaskolb/XcodeGen) ile `xcodegen generate` çalıştırın. Üretilmiş Xcode projesi depoda bulunduğu için normal kullanımda bu araç gerekli değildir.
 
@@ -79,3 +81,17 @@ Kazanç modeli güncel rüzgârın verilen süre boyunca devam edip sonra refera
 Şematik parkur deniz haritası veya parkurun farklı noktalarındaki rüzgâr haritası değildir. Yarış kuralları, rakip önceliği ve temiz manevra alanı ekip tarafından değerlendirilir. Broadcast/multicast, AIS, tekneye özel polar, filo takibi ve video üzerine veri bindirme bu sürümün dışındadır. Başlangıç mimari belgelerindeki sensör yol haritasının güncel kapsamı [LIVE_DATA.md](docs/LIVE_DATA.md) ile açıklanır.
 
 Temel ürün mantığı, kullanıcının [paylaşılan yarış stratejisi konuşmasından](https://chatgpt.com/share/6aa68eb3-a6ec-83eb-b5ba-6226bfed7c7d) türetildi. Yelken ve Apple birincil kaynakları mimari/karar belgelerinde bağlantılıdır.
+
+## Erişilebilirlik ve cihaz içi yardım
+
+Metinler Dynamic Type stillerini kullanır; erişilebilirlik boyutlarında kart satırları dikey açılır. Harita VoiceOver özeti ve simülasyonda yön eylemleri sunar. Tekne sekmesi marka bağımsız NMEA 0183 TCP / UDP unicast kurulumunu ve durum yardımını içerir; doğrudan Bluetooth, USB veya NMEA 2000 desteği değildir.
+
+Cihaz içi dil yardımı Seyir ekranında isteğe bağlı açılır. Foundation Models yalnızca okuma komutunu sınıflandırır; start pini yazma komutları kesin eşleştirmede kalır. Sayısal hesaplar ve yanıt metinleri RaceEngine'den gelir. Seyir defterindeki inceleme özeti, son 30 kayıttan en fazla üç mevcut kaydı seçer; yeni sayısal iddia üretmez. Apple Intelligence/model/Türkçe desteği yoksa standart komutlar çalışır ve modelin durumu açıklanır. Konuşma tanıma sunucuya geri düşmez.
+
+## Seyir uyarıları
+
+Layline'a hesaplanan süre 30 saniyeye indiğinde veya güncel GPS ile iki start pini arasındaki hat parçasına mesafe 30 metreye indiğinde ekran yumuşak kırmızı renkte yanıp söner. Uyarı 45 saniye / 40 metreden sonra söner; Hareketi Azalt ayarı açıksa yanıp sönme yerine sabit vurgu gösterilir. İkinci start pini alındığında start kartı en kısa mesafeyi metre olarak gösterir; “Mesafeyi söyle” düğmesi bunu seslendirir. Hat uzantısındaki tekne için en yakın pine mesafe verilir. Eski GPS konumu mesafe üretmez.
+
+Canlı bağlantıda hız kaynağı olarak önce STW, yoksa SOG kullanılır ve kaynak değişiminde karşılaştırma yeniden başlar. Simülasyonda hız uyarısı yalnızca simülasyon hızına dayanır ve “SİM” olarak etiketlenir. İlk 10 saniye / 5 geçerli örnekten sonra önceki ortalamaya göre en az %15 ve 0,5 kn düşüş 5 saniye sürerse hız uyarısı çıkar. Tek bir kötü örnek veya tekrar işlenen eski zaman damgası uyarı üretmez. Uyarılar sesli okunurken tekrarları sınırlandırılır. Bunlar saha denemesi yapılmamış destekleyici göstergelerdir.
+
+Görsel düzen, [Beautiful UI öneri kartındaki](https://www.beautifului.dev/#recommendation-card) kısa durum rozeti ile belirgin kararı ve [bağlam kartlarındaki](https://www.beautifului.dev/#context-cards) kaynak/ölçüm ayrımını yerel SwiftUI bileşenlerine uyarlar. Açık zemin güneş altında okunabilirlik hedefi için korunur; siteden kod veya görsel varlık kopyalanmaz.

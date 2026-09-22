@@ -2,7 +2,7 @@ import Foundation
 import RaceCore
 
 enum VoiceIntent: Equatable {
-    case windLift, windHeader, layline, status, committeePin, portPin, unknown
+    case windLift, windHeader, layline, status, committeePin, portPin, startDistance, unknown
 }
 
 enum VoiceTone { case information, caution, action }
@@ -22,25 +22,37 @@ enum VoiceAdvisor {
                                       locale: Locale(identifier: "tr_TR"))
             .replacingOccurrences(of: "ı", with: "i")
             .lowercased()
-        if normalized.contains("pin") && (normalized.contains("komite") || normalized.contains("starboard") || normalized.contains("sancak")) {
-            return .committeePin
+        let words = normalized.split { !$0.isLetter }.map(String.init)
+        let tokens = Set(words)
+        func has(_ values: String...) -> Bool { !tokens.isDisjoint(with: values) }
+        // Never infer a write command from fuzzy text, negation, or two endpoints.
+        if has("hayir", "degil", "alma", "almayin", "iptal", "yapma", "acmadi", "acilmadi", "kafalamadi", "daralmadi") {
+            return .unknown
         }
-        if normalized.contains("pin") && (normalized.contains("port") || normalized.contains("end")
-                                          || normalized.contains("samandira") || normalized.contains("iskele")) {
-            return .portPin
+        if has("start", "baslangic") && has("mesafe", "mesafesi", "uzak", "kadar") { return .startDistance }
+        let committee = has("komite", "starboard", "sancak")
+        let port = has("port", "end", "samandira", "iskele")
+        if has("pin", "pini") {
+            let captureWords: Set<String> = ["komite", "starboard", "sancak", "port", "end", "samandira", "iskele", "pin", "pini", "al", "alin", "kaydet", "lutfen"]
+            guard committee != port, tokens.isSubset(of: captureWords) else { return .unknown }
+            return committee ? .committeePin : .portPin
         }
-        if normalized.contains("layline") || normalized.contains("lay layn") || normalized.contains("laylayn") { return .layline }
-        if normalized.contains("ruzgar") {
-            if normalized.contains("acti") || normalized.contains("acildi") || normalized.contains("lift") { return .windLift }
-            if normalized.contains("kafala") || normalized.contains("daral") { return .windHeader }
+        var candidates: [VoiceIntent] = []
+        if has("layline", "laylayn", "layline'dayiz") || words.contains(where: { $0.hasPrefix("layline") })
+            || normalized.contains("lay layn") { candidates.append(.layline) }
+        // Conservative recognition aliases for clipped on-device transcripts.
+        if has("ruzgar", "ruzga", "ruzgarin") {
+            if has("acti", "ac", "acildi", "lift") { candidates.append(.windLift) }
+            if has("kafaladi", "kafalama", "kafala", "daraldi", "daral") { candidates.append(.windHeader) }
         }
-        if normalized.contains("durum") || normalized.contains("karar") || normalized.contains("ne yap") { return .status }
+        if has("durum", "karar") || normalized.contains("ne yap") { candidates.append(.status) }
+        if candidates.count == 1 { return candidates[0] }
         return .unknown
     }
 
     static func advice(for command: String, analysis: RaceAnalysis,
-                       readiness: String?, measuredShift: Double?) -> VoiceAdvice {
-        let intent = intent(for: command)
+                       readiness: String?, measuredShift: Double?, interpretedIntent: VoiceIntent? = nil) -> VoiceAdvice {
+        let intent = interpretedIntent ?? intent(for: command)
         if let readiness {
             return VoiceAdvice(command: command, title: "ÖLÇÜM EKSİK", detail: readiness,
                                spoken: "Karar için ölçüm eksik. \(readiness)",
@@ -79,7 +91,7 @@ enum VoiceAdvisor {
             let action = actionText(analysis)
             return VoiceAdvice(command: command, title: action.title, detail: analysis.message,
                                spoken: action.spoken, symbol: action.symbol, tone: action.tone)
-        case .unknown, .committeePin, .portPin:
+        case .unknown, .committeePin, .portPin, .startDistance:
             return VoiceAdvice(command: command, title: "KOMUTU ANLAMADIM",
                                detail: "“Rüzgâr açtı”, “Layline'dayız”, “Durum”, “Komite pin” veya “Port pin” deyin.",
                                spoken: "Komutu anlamadım. Rüzgâr açtı, layline'dayız veya durum deyin.",

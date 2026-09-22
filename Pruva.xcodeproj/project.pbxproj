@@ -10,8 +10,13 @@
 		060B30AD5A926B50D394A424 /* BoatConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */; };
 		0D2D230A0B0716EDDEBA7BA7 /* VoiceAdvisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1C46AC42EEEF123DC30BD7 /* VoiceAdvisor.swift */; };
 		10CF1DFC9BFC0989FD5B4703 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF34139F66B61F901B93ED63 /* DesignSystem.swift */; };
+		11019C5890B74776B935B069 /* SailingWindView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42B1EB59BB0A62DC62149DA4 /* SailingWindView.swift */; };
+		1A2F63E57B4F4B6B7B52F8A1 /* SailingVoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CFF792457D519BF64EB74E /* SailingVoiceView.swift */; };
 		205E093C7AAE14C9A3C83299 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */; };
+		2B4C1779AC618164D8767B54 /* SailingAnnouncementGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A97D0C47463CF7953AEA5B /* SailingAnnouncementGate.swift */; };
 		2EEC6C8240E086AA24946B83 /* VoiceAdvisorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD97922B49CBFC572F353786 /* VoiceAdvisorTests.swift */; };
+		42A66855C199781C7064B246 /* SailingInstrumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4366F492D164AFA4BF989DB7 /* SailingInstrumentsView.swift */; };
+		44311CAB06297F9624481BC4 /* SailingNavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98A2D7640EA0587E0BE95D9 /* SailingNavigatorView.swift */; };
 		45818E584A478BFA0C1F4E7A /* RaceStoreLiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */; };
 		4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3848EE58F61E7F185DD04D82 /* ScenarioView.swift */; };
 		516D003D6828DC1E3E1B2A03 /* VolumePinShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262688DB96682C5B406DFF78 /* VolumePinShortcut.swift */; };
@@ -21,11 +26,17 @@
 		7F61D8EFDFB03FCE2BF69C02 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B74E1272501AF07D9066714 /* RootView.swift */; };
 		8104FB6366D1774022C6CF81 /* RaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */; };
 		87A139360615EB51051C5AC0 /* SailingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF39981454632F6692215E9C /* SailingView.swift */; };
+		894A436E5143B4DAB2022274 /* SailingDecisionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315B94E650CB72BD01DA36E8 /* SailingDecisionView.swift */; };
 		8A8C4B0F4A4EF21DE12A694F /* LogbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A3DDEFC18493918CEDA250 /* LogbookView.swift */; };
 		8DC0E72D04431471121C3BED /* VoiceCommandService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1696023D83F98C9E4A61B0F1 /* VoiceCommandService.swift */; };
 		927DC4C71C2CD4A6CECA2192 /* PruvaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589D5F96E99B848222633617 /* PruvaUITests.swift */; };
+		A26909D79EF107A3D1DEAE37 /* SailingAlertViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF620EDBE25E6747FD6E2C3A /* SailingAlertViews.swift */; };
+		A828679BD6C52A7B6BDF6F6B /* SailingSaveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B0E07C4FCAC243D261540D /* SailingSaveView.swift */; };
 		AC163AEF771F3F92B450601D /* PruvaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */; };
+		B81A3BE81121CB8F91B257B9 /* SailingAnnouncementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D9F1A27321802C1CE923745 /* SailingAnnouncementTests.swift */; };
+		CD31091CFD737B346ABAB681 /* OnDeviceLanguageAdvisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B5C17B4440F400670F66F4 /* OnDeviceLanguageAdvisor.swift */; };
 		DB0E7152732BE74E6C0EFCD9 /* TacticalMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79245FF1BE52AF8FBD6C29F8 /* TacticalMapView.swift */; };
+		F862A01C60D266CED7B2500B /* SailingAlertState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC3E9FFE459AC0DCA8373A3 /* SailingAlertState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,25 +59,36 @@
 /* Begin PBXFileReference section */
 		01DAFDA1DC9F2F512E277124 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		042CA3F64C1F41433C3FD248 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		0FC3E9FFE459AC0DCA8373A3 /* SailingAlertState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingAlertState.swift; sourceTree = "<group>"; };
 		1696023D83F98C9E4A61B0F1 /* VoiceCommandService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceCommandService.swift; sourceTree = "<group>"; };
 		262688DB96682C5B406DFF78 /* VolumePinShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumePinShortcut.swift; sourceTree = "<group>"; };
 		26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStoreLiveTests.swift; sourceTree = "<group>"; };
+		315B94E650CB72BD01DA36E8 /* SailingDecisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingDecisionView.swift; sourceTree = "<group>"; };
+		31CFF792457D519BF64EB74E /* SailingVoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingVoiceView.swift; sourceTree = "<group>"; };
 		32A3DDEFC18493918CEDA250 /* LogbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookView.swift; sourceTree = "<group>"; };
 		3848EE58F61E7F185DD04D82 /* ScenarioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioView.swift; sourceTree = "<group>"; };
+		42B1EB59BB0A62DC62149DA4 /* SailingWindView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingWindView.swift; sourceTree = "<group>"; };
+		4366F492D164AFA4BF989DB7 /* SailingInstrumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingInstrumentsView.swift; sourceTree = "<group>"; };
+		57B5C17B4440F400670F66F4 /* OnDeviceLanguageAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceLanguageAdvisor.swift; sourceTree = "<group>"; };
 		589D5F96E99B848222633617 /* PruvaUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PruvaUITests.swift; sourceTree = "<group>"; };
+		5D9F1A27321802C1CE923745 /* SailingAnnouncementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingAnnouncementTests.swift; sourceTree = "<group>"; };
 		6B74E1272501AF07D9066714 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		6EFAD6ECC34ED9CF83017530 /* PruvaUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PruvaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		79245FF1BE52AF8FBD6C29F8 /* TacticalMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TacticalMapView.swift; sourceTree = "<group>"; };
 		7F17568A9649C3C3E915600A /* Pruva.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pruva.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NMEAConnection.swift; sourceTree = "<group>"; };
+		99A97D0C47463CF7953AEA5B /* SailingAnnouncementGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingAnnouncementGate.swift; sourceTree = "<group>"; };
 		A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PruvaApp.swift; sourceTree = "<group>"; };
+		AF620EDBE25E6747FD6E2C3A /* SailingAlertViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingAlertViews.swift; sourceTree = "<group>"; };
 		BD1C46AC42EEEF123DC30BD7 /* VoiceAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAdvisor.swift; sourceTree = "<group>"; };
 		BF39981454632F6692215E9C /* SailingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingView.swift; sourceTree = "<group>"; };
 		CA3483FC4E4D5AEA8307ADBC /* BoatConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoatConnectionView.swift; sourceTree = "<group>"; };
+		D8B0E07C4FCAC243D261540D /* SailingSaveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingSaveView.swift; sourceTree = "<group>"; };
 		DD97922B49CBFC572F353786 /* VoiceAdvisorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAdvisorTests.swift; sourceTree = "<group>"; };
 		DF34139F66B61F901B93ED63 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStore.swift; sourceTree = "<group>"; };
 		EDE5F6348321C2C77552F2BA /* Navigatör Yardımcısı */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Navigatör Yardımcısı"; path = .; sourceTree = SOURCE_ROOT; };
+		F98A2D7640EA0587E0BE95D9 /* SailingNavigatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailingNavigatorView.swift; sourceTree = "<group>"; };
 		FD47E83F130DC16E800669B8 /* PruvaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PruvaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -123,6 +145,8 @@
 			children = (
 				A4BE178F1BD7B560193E3F86 /* PruvaApp.swift */,
 				E4F810D32D2BC3B3EAEB2869 /* RaceStore.swift */,
+				0FC3E9FFE459AC0DCA8373A3 /* SailingAlertState.swift */,
+				99A97D0C47463CF7953AEA5B /* SailingAnnouncementGate.swift */,
 				BD1C46AC42EEEF123DC30BD7 /* VoiceAdvisor.swift */,
 			);
 			path = App;
@@ -142,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				8E20F1D11C009B004A77B8EA /* NMEAConnection.swift */,
+				57B5C17B4440F400670F66F4 /* OnDeviceLanguageAdvisor.swift */,
 				1696023D83F98C9E4A61B0F1 /* VoiceCommandService.swift */,
 				262688DB96682C5B406DFF78 /* VolumePinShortcut.swift */,
 			);
@@ -155,7 +180,14 @@
 				DF34139F66B61F901B93ED63 /* DesignSystem.swift */,
 				32A3DDEFC18493918CEDA250 /* LogbookView.swift */,
 				6B74E1272501AF07D9066714 /* RootView.swift */,
+				AF620EDBE25E6747FD6E2C3A /* SailingAlertViews.swift */,
+				315B94E650CB72BD01DA36E8 /* SailingDecisionView.swift */,
+				4366F492D164AFA4BF989DB7 /* SailingInstrumentsView.swift */,
+				F98A2D7640EA0587E0BE95D9 /* SailingNavigatorView.swift */,
+				D8B0E07C4FCAC243D261540D /* SailingSaveView.swift */,
 				BF39981454632F6692215E9C /* SailingView.swift */,
+				31CFF792457D519BF64EB74E /* SailingVoiceView.swift */,
+				42B1EB59BB0A62DC62149DA4 /* SailingWindView.swift */,
 				3848EE58F61E7F185DD04D82 /* ScenarioView.swift */,
 				79245FF1BE52AF8FBD6C29F8 /* TacticalMapView.swift */,
 			);
@@ -166,6 +198,7 @@
 			isa = PBXGroup;
 			children = (
 				26B5061207D0D0A4933DB2E1 /* RaceStoreLiveTests.swift */,
+				5D9F1A27321802C1CE923745 /* SailingAnnouncementTests.swift */,
 				DD97922B49CBFC572F353786 /* VoiceAdvisorTests.swift */,
 			);
 			path = PruvaTests;
@@ -300,10 +333,20 @@
 				10CF1DFC9BFC0989FD5B4703 /* DesignSystem.swift in Sources */,
 				8A8C4B0F4A4EF21DE12A694F /* LogbookView.swift in Sources */,
 				53B1E3E91AA5A334F12E5187 /* NMEAConnection.swift in Sources */,
+				CD31091CFD737B346ABAB681 /* OnDeviceLanguageAdvisor.swift in Sources */,
 				AC163AEF771F3F92B450601D /* PruvaApp.swift in Sources */,
 				8104FB6366D1774022C6CF81 /* RaceStore.swift in Sources */,
 				7F61D8EFDFB03FCE2BF69C02 /* RootView.swift in Sources */,
+				F862A01C60D266CED7B2500B /* SailingAlertState.swift in Sources */,
+				A26909D79EF107A3D1DEAE37 /* SailingAlertViews.swift in Sources */,
+				2B4C1779AC618164D8767B54 /* SailingAnnouncementGate.swift in Sources */,
+				894A436E5143B4DAB2022274 /* SailingDecisionView.swift in Sources */,
+				42A66855C199781C7064B246 /* SailingInstrumentsView.swift in Sources */,
+				44311CAB06297F9624481BC4 /* SailingNavigatorView.swift in Sources */,
+				A828679BD6C52A7B6BDF6F6B /* SailingSaveView.swift in Sources */,
 				87A139360615EB51051C5AC0 /* SailingView.swift in Sources */,
+				1A2F63E57B4F4B6B7B52F8A1 /* SailingVoiceView.swift in Sources */,
+				11019C5890B74776B935B069 /* SailingWindView.swift in Sources */,
 				4895B6D177C6F907BABD0E04 /* ScenarioView.swift in Sources */,
 				DB0E7152732BE74E6C0EFCD9 /* TacticalMapView.swift in Sources */,
 				0D2D230A0B0716EDDEBA7BA7 /* VoiceAdvisor.swift in Sources */,
@@ -317,6 +360,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				45818E584A478BFA0C1F4E7A /* RaceStoreLiveTests.swift in Sources */,
+				B81A3BE81121CB8F91B257B9 /* SailingAnnouncementTests.swift in Sources */,
 				2EEC6C8240E086AA24946B83 /* VoiceAdvisorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -397,7 +441,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -550,7 +594,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;

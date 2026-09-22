@@ -1,7 +1,7 @@
 name: iOS build and race engine
 on:
   push:
-    branches: [main, 'codex/**']
+    branches: [main, 'feature/**']
   pull_request:
 permissions:
   contents: read
@@ -11,6 +11,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        run: |
+          XCODE_APP=$(find /Applications -maxdepth 1 -name 'Xcode_26*.app' | sort -V | tail -n 1)
+          test -n "$XCODE_APP"
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
       - name: Test sailing geometry and decisions
         run: swift test
       - name: Build iPhone and iPad app

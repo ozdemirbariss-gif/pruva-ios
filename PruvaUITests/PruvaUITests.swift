@@ -1,6 +1,55 @@
 import XCTest
 
 final class PruvaUITests: XCTestCase {
+    @MainActor func testLaylineWarningAppearsAndClearsWithScenarioChange() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting"]
+        app.launch()
+        app.buttons["tab-Senaryolar"].tap()
+        let carousel = app.scrollViews["scenario-carousel"]
+        for _ in 0..<4 {
+            if app.buttons["scenario-nearLayline"].isHittable { break }
+            carousel.swipeLeft()
+        }
+        app.buttons["scenario-nearLayline"].tap()
+        app.buttons["tab-Seyir"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["sailing-alert-layline"].waitForExistence(timeout: 5))
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Layline warning"
+        shot.lifetime = .keepAlways
+        add(shot)
+        app.buttons["Parkur seç"].tap()
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Uzun kontra")).firstMatch.tap()
+        let absent = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.descendants(matching: .any)["sailing-alert-layline"])
+        XCTAssertEqual(XCTWaiter.wait(for: [absent], timeout: 5), .completed)
+    }
+
+    @MainActor func testLargestDynamicTypeKeepsPrimaryControlsReachable() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        XCTAssertTrue(app.buttons["tab-Tekne"].waitForExistence(timeout: 10))
+        app.buttons["tab-Tekne"].tap()
+        XCTAssertTrue(app.navigationBars["Tekne bağlantısı"].waitForExistence(timeout: 5))
+        app.buttons["tab-Seyir"].tap()
+        let save = app.buttons["save-decision"]
+        for _ in 0..<25 {
+            if save.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(save.isHittable)
+        XCTAssertGreaterThanOrEqual(save.frame.height, 44)
+        save.tap()
+        let saved = app.buttons.matching(identifier: "save-decision")
+            .matching(NSPredicate(format: "label CONTAINS %@", "kaydedildi")).firstMatch
+        XCTAssertTrue(saved.waitForExistence(timeout: 3))
+        app.swipeUp()
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Largest Dynamic Type"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     @MainActor func testTargetEditorValidatesAndUpdatesCourse() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]

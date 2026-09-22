@@ -149,13 +149,13 @@ final class RaceStoreLiveTests: XCTestCase {
         let now = Date()
         sendFix(store, at: now)
 
-        XCTAssertTrue(store.captureStartPin(.committee).contains("alındı"))
+        XCTAssertTrue(store.captureStartPin(.committee).succeeded)
         XCTAssertNil(store.startLineLengthMeters)
-        XCTAssertTrue(store.captureStartPin(.port).contains("aynı konumda"))
+        XCTAssertTrue(store.captureStartPin(.port).message.contains("aynı konumda"))
         XCTAssertNil(store.portPinCoordinate)
 
         sendFix(store, at: now.addingTimeInterval(1), longitudeMinutes: "15.060")
-        XCTAssertTrue(store.captureStartPin(.port).contains("alındı"))
+        XCTAssertTrue(store.captureStartPin(.port).succeeded)
         let length = try XCTUnwrap(store.startLineLengthMeters)
         XCTAssertGreaterThan(length, 80)
         XCTAssertLessThan(length, 100)
@@ -177,14 +177,133 @@ final class RaceStoreLiveTests: XCTestCase {
         let store = makeStore()
         defer { store.disconnectBoat() }
         XCTAssertNil(store.committeePinCoordinate)
-        XCTAssertTrue(store.captureStartPin(.committee).contains("GPS konumu bekleniyor"))
+        XCTAssertTrue(store.captureStartPin(.committee).message.contains("GPS konumu bekleniyor"))
         store.connectBoat()
-        XCTAssertTrue(store.captureStartPin(.committee).contains("GPS konumu bekleniyor"))
+        XCTAssertTrue(store.captureStartPin(.committee).message.contains("GPS konumu bekleniyor"))
         let now = Date()
         sendFix(store, at: now)
-        XCTAssertTrue(store.captureStartPin(.committee).contains("alındı"))
+        XCTAssertTrue(store.captureStartPin(.committee).succeeded)
         store.telemetryNow = now.addingTimeInterval(16)
-        XCTAssertTrue(store.captureStartPin(.port).contains("GPS konumu bekleniyor"))
+        XCTAssertTrue(store.captureStartPin(.port).message.contains("GPS konumu bekleniyor"))
         XCTAssertNil(store.portPinCoordinate)
     }
+    func testPersistenceRestoresSimulationAndSettingsWithoutOpeningNetwork() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("persist-\(UUID()).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let store = RaceStore(storageURL: url)
+        store.input.windSpeed = 21
+        store.scenarioName = "Özel parkur"
+        store.connectionSettings = NMEAConnectionSettings(transport: .tcp, host: "127.0.0.1", port: 10110)
+        store.saveDecision(note: "Ekip notu")
+        let savedInput = store.input
+        store.connectBoat()
+        store.input.windSpeed = 4
+        XCTAssertTrue(store.persist())
+        store.disconnectBoat()
+        let restored = RaceStore(storageURL: url)
+        XCTAssertEqual(restored.input, savedInput)
+        XCTAssertEqual(restored.scenarioName, "Özel parkur")
+        XCTAssertEqual(restored.connectionSettings, store.connectionSettings)
+        XCTAssertEqual(restored.entries.first?.note, "Ekip notu")
+        XCTAssertFalse(restored.isLiveMode)
+        XCTAssertFalse(restored.connection.isRunning)
+    }
+
+    func testCorruptStorageFallsBackAndWriteFailureIsVisible() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("corrupt-\(UUID()).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        try Data("invalid".utf8).write(to: url)
+        let store = RaceStore(storageURL: url)
+        XCTAssertNotNil(store.storageMessage)
+        XCTAssertEqual(store.input, DemoScenario.longTack.input)
+        let invalid = RaceStore(storageURL: url.appendingPathComponent("missing.json"))
+        invalid.saveDecision()
+        XCTAssertFalse(invalid.savedFeedback)
+        XCTAssertNotNil(invalid.storageMessage)
+    }
+
+    func testPinDistanceBoundsDoNotReplaceExistingEndpoint() {
+        let store = makeStore()
+        defer { store.disconnectBoat() }
+        store.connectBoat()
+        let now = Date()
+        sendFix(store, at: now)
+        XCTAssertTrue(store.captureStartPin(.committee).succeeded)
+        sendFix(store, at: now.addingTimeInterval(1), longitudeMinutes: "15.060")
+        XCTAssertTrue(store.captureStartPin(.port).succeeded)
+        let original = store.portPinCoordinate
+        sendFix(store, at: now.addingTimeInterval(2), longitudeMinutes: "15.000")
+        XCTAssertFalse(store.captureStartPin(.port).succeeded)
+        XCTAssertEqual(store.portPinCoordinate, original)
+        sendFix(store, at: now.addingTimeInterval(3), longitudeMinutes: "25.000")
+        XCTAssertFalse(store.captureStartPin(.port).succeeded)
+        XCTAssertEqual(store.portPinCoordinate, original)
+    }
+
+    func testDisconnectSuppressesLiveAdviceAndPlaybackUntilExplicitSimulation() {
+        let store = makeStore()
+        store.togglePlayback()
+        store.connectBoat()
+        XCTAssertFalse(store.isPlaying)
+        sendComplete(store, at: Date())
+        store.disconnectBoat()
+        XCTAssertTrue(store.isLiveMode)
+        XCTAssertNil(store.freshPosition)
+        XCTAssertNil(store.liveWind)
+        store.togglePlayback()
+        XCTAssertFalse(store.isPlaying)
+        XCTAssertEqual(store.respondToCommand("durum").title, "ÖLÇÜM EKSİK")
+        store.leaveLiveMode()
+        store.togglePlayback()
+        XCTAssertTrue(store.isPlaying)
+    }
+
+    func testStartDistanceNeedsOnlyPinsAndFreshGPSAndExpires() throws {
+        let store = makeStore()
+        defer { store.disconnectBoat() }
+        store.connectBoat()
+        let now = Date()
+        sendFix(store, at: now)
+        XCTAssertTrue(store.captureStartPin(.committee).succeeded)
+        XCTAssertNil(store.startLineMeasurement)
+        sendFix(store, at: now.addingTimeInterval(1), longitudeMinutes: "15.060")
+        XCTAssertTrue(store.captureStartPin(.port).succeeded)
+        XCTAssertEqual(try XCTUnwrap(store.startLineMeasurement).distanceMeters, 0, accuracy: 0.01)
+        XCTAssertNotNil(store.liveReadinessMessage) // no wind/heading/course required for distance
+        XCTAssertTrue(store.lineAlertActive)
+        XCTAssertTrue(store.respondToCommand("start mesafesi").spoken.contains("0 metre"))
+        store.telemetryNow = now.addingTimeInterval(17)
+        store.updateSailingAlerts()
+        XCTAssertNil(store.startLineMeasurement)
+        XCTAssertFalse(store.lineAlertActive)
+        XCTAssertTrue(store.respondToCommand("start mesafesi").spoken.contains("güncel"))
+        store.disconnectBoat()
+        XCTAssertTrue(store.sailingAlerts.isEmpty)
+    }
+
+    func testLiveSpeedDropIsDetectedAndDisconnectClearsIt() {
+        let store = makeStore()
+        defer { store.disconnectBoat() }
+        store.connectBoat()
+        let now = Date()
+        for second in 0...16 {
+            let speed = second <= 10 ? "6.0" : "4.0"
+            store.receiveNMEA(sentence("IIVHW,315.0,T,,M,\(speed),N,,K"), at: now.addingTimeInterval(Double(second)))
+        }
+        XCTAssertTrue(store.sailingAlerts.contains { $0.kind == .speed })
+        store.disconnectBoat()
+        XCTAssertFalse(store.sailingAlerts.contains { $0.kind == .speed })
+    }
+
+    func testSimulatedSpeedDeclineWarnsOnlyAfterWarmupAndClearsOnScenarioChange() {
+        let store = makeStore()
+        let now = Date(timeIntervalSince1970: 1000)
+        for second in 0...10 { store.telemetryNow = now.addingTimeInterval(Double(second)); store.updateSailingAlerts() }
+        store.input.boatSpeed = 4
+        for second in 11...16 { store.telemetryNow = now.addingTimeInterval(Double(second)); store.updateSailingAlerts() }
+        XCTAssertTrue(store.sailingAlerts.contains { $0.kind == .speed && $0.detail.contains("SİM") })
+        store.load(.downwind)
+        XCTAssertFalse(store.sailingAlerts.contains { $0.kind == .speed })
+    }
+
 }
