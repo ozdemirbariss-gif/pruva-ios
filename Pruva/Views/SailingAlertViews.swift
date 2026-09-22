@@ -57,14 +57,16 @@ struct SailingStartCard: View {
     @Bindable var store: RaceStore
     @Environment(VoiceCommandService.self) private var voice
     var body: some View {
-        if store.isLiveMode || store.committeePinCoordinate != nil || store.portPinCoordinate != nil {
+        if store.isLiveMode || store.simulatedStartLine != nil {
             Surface(padding: 18) {
                 VStack(alignment: .leading, spacing: 14) {
                     AdaptiveStack {
                         Label("START HATTI", systemImage: "flag.checkered").font(.caption.weight(.bold))
                         Spacer()
-                        StatusChip(title: store.startLineMeasurement == nil ? "GPS / pin bekleniyor" : "GPS güncel",
-                                   symbol: store.startLineMeasurement == nil ? "clock" : "location.fill")
+                        StatusChip(title: store.isLiveMode
+                                   ? (store.startLineMeasurement == nil ? "GPS / pin bekleniyor" : "GPS güncel")
+                                   : "SİMÜLASYON",
+                                   symbol: store.isLiveMode ? (store.startLineMeasurement == nil ? "clock" : "location.fill") : "play.circle")
                     }
                     AdaptiveStack(alignment: .firstTextBaseline) {
                         Metric(label: "Starta mesafe", value: store.startLineMeasurement.map { "\(Int($0.distanceMeters.rounded()))" } ?? "—", unit: "m")

@@ -29,6 +29,8 @@ struct ScenarioView: View {
                     }
                 }.scrollIndicators(.hidden).accessibilityIdentifier("scenario-carousel")
 
+                if store.simulatedStartLine != nil { startPractice }
+
                 Surface {
                     VStack(alignment: .leading, spacing: 16) {
                         Eyebrow(text: "Karar şimdi")
@@ -64,6 +66,7 @@ struct ScenarioView: View {
                         control("Ortalama rüzgâr yönü", value: $store.input.meanWindDirection, range: 0...359, unit: "°", step: 1)
                         control("Gerçek rüzgâr hızı", value: $store.input.windSpeed, range: 3...35, unit: "kn")
                         control("Tekne hızı · suya göre", value: $store.input.boatSpeed, range: 1...20, unit: "kn")
+                            .disabled(store.speedDrillStartedAt != nil)
                         control("Hedef gerçek rüzgâr açısı", value: $store.input.targetAngle, range: store.input.leg == .upwind ? 30...65 : 110...175, unit: "°", step: 1)
                     }
                 }
@@ -99,6 +102,46 @@ struct ScenarioView: View {
             Text(label).font(.system(.caption2, weight: .semibold)).tracking(1).foregroundStyle(Palette.secondary)
             Text("\(decimal(value)) sn").font(.system(.title2, design: .monospaced, weight: .semibold)).foregroundStyle(Palette.teal)
         }
+    }
+
+    private var startPractice: some View {
+        Surface {
+            VStack(alignment: .leading, spacing: 16) {
+                Eyebrow(text: "Çevrimdışı start provası")
+                Text("Örnek 120 m start hattı çizili. Tekneyi hatta yaklaştırıp kırmızı uyarıyı ve mesafe anonsunu deneyin. GPS verisi kullanılmaz.")
+                    .font(.footnote).foregroundStyle(Palette.secondary)
+                Text("Hatta mesafe: \(Int(store.startLineMeasurement?.distanceMeters.rounded() ?? 0)) m")
+                    .font(.headline.monospacedDigit()).accessibilityIdentifier("practice-start-distance")
+                Slider(value: Binding(get: { min(150, max(0, store.startLineMeasurement?.distanceMeters ?? 0)) }, set: { distance in
+                    store.input.boatPosition = Point(east: 0, north: -distance)
+                    store.updateSailingAlerts()
+                }), in: 0...150, step: 1)
+                    .accessibilityLabel("Simülasyon start hattına mesafe")
+                AdaptiveStack(spacing: 10) {
+                    Button("Hatta yaklaş · 25 m") { setPracticeDistance(25) }
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("practice-near-line")
+                    Button("Başa dön · 120 m") { setPracticeDistance(120) }
+                        .buttonStyle(.bordered).accessibilityIdentifier("practice-reset-position")
+                }
+                Divider()
+                Text(store.speedDrillStartedAt == nil
+                     ? "Hız provası 6,4 kn ile başlar; 11 saniye sonra 4,8 kn'ye iner. Düşüş 5 saniye sürünce uyarı çıkar."
+                     : (store.speedDropMonitor.warning == nil ? "Hız provası çalışıyor · SİM" : "Hız düşüşü uyarısı etkin · SİM"))
+                    .font(.footnote).foregroundStyle(Palette.secondary)
+                AdaptiveStack(spacing: 10) {
+                    Button("Hız düşüşünü dene") { store.startSpeedDrill() }
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("practice-speed-drop")
+                    Button("Hız provasını sıfırla") { store.resetSpeedDrill() }
+                        .buttonStyle(.bordered).disabled(store.speedDrillStartedAt == nil)
+                }
+            }
+        }
+    }
+
+    private func setPracticeDistance(_ meters: Double) {
+        store.input.boatPosition = Point(east: 0, north: -meters)
+        store.updateSailingAlerts()
+        store.persist()
     }
 
     private func control(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, unit: String, step: Double = 0.1) -> some View {

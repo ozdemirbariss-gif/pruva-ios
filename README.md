@@ -23,7 +23,7 @@ Bu ekran görüntüleri simülasyon akışını gösterir.
 - **Hızlı hedef girişi:** parkurdan tek dokunuşla şamandıra düzenleme; canlı modda koordinat veya güncel tekne GPS konumu, simülasyonda yön/mesafe. Geçersiz girişler kaydedilmez.
 - **İki ekip rolü:** taktisyen için VMG ve karar gerekçesi; navigatör için VMC, yer rotası, hedef mesafesi ve kontra süreleri.
 - **Karar motoru:** ortalamaya göre shift, uzun/kısa kontra, ek manevra maliyeti, kullanılabilir süre, basınç varsayımı, kirli hava ve son yaklaşım.
-- **Senaryolar:** uzun kontra, süren kafalama, layline eşiği, pupa ve son yaklaşım. Hız, açı, shift, akıntı ve maliyet kaydırıcıları anında hesaplanır.
+- **Senaryolar:** uzun kontra, süren kafalama, layline eşiği, pupa, son yaklaşım ve start provası. Hız, açı, shift, akıntı ve maliyet kaydırıcıları anında hesaplanır.
 - **Rüzgâr oynatma:** örnek salınımı başlat/duraklat; kullanıcı girdilerinden oluşan grafik. Referans değişince grafik aynı gerçek yönleri yeni ortalamaya göre gösterir.
 - **Seyir defteri:** karar ve ekip notunu cihazda sakla; eski koşulları haritada aç; farklı rüzgârla karşılaştır; metin notunu iOS paylaşım menüsünden dışa aktar.
 - **Wi-Fi ölçüm yolu:** yapılandırılabilir TCP host/port veya UDP unicast dinleme; SOG/STW ve gerçek/görünür rüzgâr ayrımı; 15 saniye güncellik kontrolü ve 2 dakikalık dairesel rüzgâr referansı. Ham telemetri yüklenmez.
@@ -89,6 +89,10 @@ Metinler Dynamic Type stillerini kullanır; erişilebilirlik boyutlarında kart 
 Cihaz içi dil yardımı Seyir ekranında isteğe bağlı açılır. Foundation Models yalnızca okuma komutunu sınıflandırır; start pini yazma komutları kesin eşleştirmede kalır. Sayısal hesaplar ve yanıt metinleri RaceEngine'den gelir. Seyir defterindeki inceleme özeti, son 30 kayıttan en fazla üç mevcut kaydı seçer; yeni sayısal iddia üretmez. Apple Intelligence/model/Türkçe desteği yoksa standart komutlar çalışır ve modelin durumu açıklanır. Konuşma tanıma sunucuya geri düşmez.
 
 ## Seyir uyarıları
+
+Çevrimdışı **Start provası** senaryosunda 120 m örnek hat çizilir. Senaryolar sekmesindeki mesafe sürgüsü veya “Hatta yaklaş · 25 m” düğmesiyle tekne yaklaştırılıp kırmızı uyarı ve start mesafesi denenebilir. “Hız düşüşünü dene” düğmesi 6,4 kn başlangıç hızını 11 saniye sonra 4,8 kn'ye indirir; mevcut süre filtresi 5 saniye sonra uyarı verir. Kart ve sesli bildirim bu veriyi açıkça **simülasyon** olarak etiketler. Gerçek GPS pinleri bu provada kullanılmaz ve değiştirilmez.
+
+[Simülasyon start yaklaşması ekranı](docs/screenshots/simulated-start-approach.png)
 
 Layline'a hesaplanan süre 30 saniyeye indiğinde veya güncel GPS ile iki start pini arasındaki hat parçasına mesafe 30 metreye indiğinde ekran yumuşak kırmızı renkte yanıp söner. Uyarı 45 saniye / 40 metreden sonra söner; Hareketi Azalt ayarı açıksa yanıp sönme yerine sabit vurgu gösterilir. İkinci start pini alındığında start kartı en kısa mesafeyi metre olarak gösterir; “Mesafeyi söyle” düğmesi bunu seslendirir. Hat uzantısındaki tekne için en yakın pine mesafe verilir. Eski GPS konumu mesafe üretmez.
 

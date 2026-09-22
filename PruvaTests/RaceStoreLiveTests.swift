@@ -306,4 +306,44 @@ final class RaceStoreLiveTests: XCTestCase {
         XCTAssertFalse(store.sailingAlerts.contains { $0.kind == .speed })
     }
 
+    func testStartPracticeUsesLocalLineWithoutLivePins() throws {
+        let store = makeStore()
+        store.load(.startApproach)
+        XCTAssertFalse(store.isLiveMode)
+        XCTAssertNil(store.committeePinCoordinate)
+        XCTAssertNil(store.portPinCoordinate)
+        XCTAssertEqual(try XCTUnwrap(store.startLineLengthMeters), 120, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(store.startLineMeasurement).distanceMeters, 120, accuracy: 0.001)
+        XCTAssertTrue(store.startDistanceSpeech.contains("Simülasyon"))
+
+        store.input.boatPosition = Point(east: 0, north: -25)
+        store.updateSailingAlerts()
+        XCTAssertTrue(store.sailingAlerts.contains { $0.kind == .startLine })
+        store.input.boatPosition = Point(east: 0, north: -50)
+        store.updateSailingAlerts()
+        XCTAssertFalse(store.sailingAlerts.contains { $0.kind == .startLine })
+
+        store.connectBoat()
+        XCTAssertNil(store.startLineMeasurement)
+        store.leaveLiveMode()
+        XCTAssertEqual(try XCTUnwrap(store.startLineMeasurement).distanceMeters, 50, accuracy: 0.001)
+        XCTAssertNil(store.committeePinCoordinate)
+        XCTAssertNil(store.portPinCoordinate)
+    }
+
+    func testSpeedPracticeReachesWarningAndCanReset() {
+        let store = makeStore()
+        store.load(.startApproach)
+        let now = Date(timeIntervalSince1970: 1000)
+        store.startSpeedDrill(at: now)
+        for second in 1...15 { store.tick(at: now.addingTimeInterval(Double(second))) }
+        XCTAssertFalse(store.sailingAlerts.contains { $0.kind == .speed })
+        store.tick(at: now.addingTimeInterval(16))
+        XCTAssertTrue(store.sailingAlerts.contains { $0.kind == .speed && $0.detail.contains("SİM") })
+        XCTAssertEqual(store.input.boatSpeed, 4.8, accuracy: 0.001)
+        store.resetSpeedDrill()
+        XCTAssertFalse(store.sailingAlerts.contains { $0.kind == .speed })
+        XCTAssertEqual(store.input.boatSpeed, 6.4, accuracy: 0.001)
+    }
+
 }

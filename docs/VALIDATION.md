@@ -1,5 +1,9 @@
 # Doğrulama kaydı
 
+## 22 Eylül 2026 — çevrimdışı start provası
+
+RaceCore **64 test**, iPhone uygulaması **27 birim ve 8 arayüz testi**, iPad'de start provası arayüz testi: tümü geçti. Start provası senaryosunda örnek hat mesafesi, 25 m yaklaşma uyarısı, 50 m'de uyarının sönmesi, hız düşüşünün süre eşiği ve sıfırlama uygulama testleriyle kontrol edildi. Simülasyon hattı canlı GPS pinlerinden ayrı tutulur; canlı moda geçişte simülasyon mesafesi gösterilmez. iPhone ve iPad arayüz testleri prova kartından Seyir ekranına geçerek kırmızı start uyarısını ve hız düşüşü düğmesinden sonra ekrandaki uyarıyı doğruladı. [Simülasyon görüntüsü](screenshots/simulated-start-approach.png) görsel olarak kontrol edildi.
+
 ## 22 Eylül 2026 — seyir uyarıları
 
 RaceCore: **64 test, 0 hata**. Uygulama: **25 birim testi, 0 hata**. **iPhone: 7 UI testi**, **iPad: 2 UI testi** geçti.

@@ -10,6 +10,14 @@ struct PinCaptureResult: Equatable {
 
 enum StartEndpoint { case committee, port }
 
+struct SimulatedStartLine: Codable, Equatable {
+    let committee: Point
+    let port: Point
+
+    static let practice = SimulatedStartLine(
+        committee: Point(east: -60, north: 0), port: Point(east: 60, north: 0))
+}
+
 struct DecisionEntry: Identifiable, Codable {
     var id = UUID()
     var date = Date()
@@ -48,6 +56,8 @@ final class RaceStore {
     var markName = "Yarış şamandırası"
     var committeePinCoordinate: GeoCoordinate?
     var portPinCoordinate: GeoCoordinate?
+    var simulatedStartLine: SimulatedStartLine?
+    var speedDrillStartedAt: Date?
     var pinFeedback: String?
     var speedDropMonitor = SpeedDropMonitor()
     var laylineProximity = ProximityLatch()
@@ -96,6 +106,7 @@ final class RaceStore {
             markName = saved.markName ?? "Yarış şamandırası"
             committeePinCoordinate = saved.committeePinCoordinate
             portPinCoordinate = saved.portPinCoordinate
+            simulatedStartLine = saved.simulatedStartLine
         } catch { storageMessage = "Önceki oturum okunamadı. Örnek parkur açıldı." }
     }
 
@@ -105,6 +116,7 @@ final class RaceStore {
         isPlaying = false
         input = scenario.input
         scenarioName = scenario.title
+        simulatedStartLine = scenario == .startApproach ? .practice : nil
         windDirections = [input.windDirection]
         savedFeedback = false
         persist()
@@ -117,10 +129,13 @@ final class RaceStore {
         replayBaseline = relativeWind
     }
 
-    func tick() {
-        telemetryNow = Date()
+    func tick(at date: Date = Date()) {
+        telemetryNow = date
         defer { updateSailingAlerts() }
         if isLiveMode { updateLiveInput(); return }
+        if let speedDrillStartedAt {
+            input.boatSpeed = date.timeIntervalSince(speedDrillStartedAt) >= 11 ? 4.8 : 6.4
+        }
         guard isPlaying else { return }
         replayStep += 1
         relativeWind = max(-30, min(30, replayBaseline + sin(Double(replayStep) * .pi / 18) * 12))
@@ -150,6 +165,7 @@ final class RaceStore {
         isPlaying = false
         input = entry.input
         scenarioName = entry.liveContext == nil ? "Kayıtlı karar" : "Canlı kayıt · inceleme"
+        simulatedStartLine = nil
         windDirections = [input.windDirection]
         persist()
     }
@@ -159,7 +175,8 @@ final class RaceStore {
             let data = try JSONEncoder().encode(SavedState(input: isLiveMode ? simulationInput : input, entries: entries,
                 scenarioName: isLiveMode ? simulationName : scenarioName, connectionSettings: connectionSettings,
                 markCoordinate: markCoordinate, markName: markName,
-                committeePinCoordinate: committeePinCoordinate, portPinCoordinate: portPinCoordinate, languageModelEnabled: languageModelEnabled))
+                committeePinCoordinate: committeePinCoordinate, portPinCoordinate: portPinCoordinate,
+                simulatedStartLine: simulatedStartLine, languageModelEnabled: languageModelEnabled))
             try data.write(to: fileURL, options: .atomic)
             storageMessage = nil
             return true
@@ -199,13 +216,18 @@ final class RaceStore {
     }
     var measuredBoatHeading: Double? { freshHeading?.value ?? freshCOG?.value }
     var startLineLengthMeters: Double? {
+        if !isLiveMode, let simulatedStartLine {
+            let length = hypot(simulatedStartLine.port.east - simulatedStartLine.committee.east,
+                               simulatedStartLine.port.north - simulatedStartLine.committee.north)
+            return (1...10_000).contains(length) ? length : nil
+        }
         guard let committeePinCoordinate, let portPinCoordinate,
               let delta = portPinCoordinate.projected(relativeTo: committeePinCoordinate) else { return nil }
         let length = hypot(delta.east, delta.north)
         return (1...10_000).contains(length) ? length : nil
     }
-    var projectedCommitteePin: Point? { projectedStartPin(committeePinCoordinate) }
-    var projectedPortPin: Point? { projectedStartPin(portPinCoordinate) }
+    var projectedCommitteePin: Point? { isLiveMode ? projectedStartPin(committeePinCoordinate) : simulatedStartLine?.committee }
+    var projectedPortPin: Point? { isLiveMode ? projectedStartPin(portPinCoordinate) : simulatedStartLine?.port }
 
     private func projectedStartPin(_ coordinate: GeoCoordinate?) -> Point? {
         guard isLiveMode, let coordinate, let origin = markCoordinate ?? localOrigin else { return nil }
@@ -261,6 +283,23 @@ final class RaceStore {
         input = simulationInput
         scenarioName = simulationName
         windDirections = [input.windDirection]
+    }
+
+    func startSpeedDrill(at date: Date = Date()) {
+        guard !isLiveMode, simulatedStartLine != nil else { return }
+        isPlaying = false
+        speedDropMonitor.reset()
+        speedDrillStartedAt = date
+        input.boatSpeed = 6.4
+        telemetryNow = date
+        updateSailingAlerts()
+    }
+
+    func resetSpeedDrill() {
+        speedDrillStartedAt = nil
+        speedDropMonitor.reset()
+        input.boatSpeed = 6.4
+        updateSailingAlerts()
     }
 
     func receiveNMEA(_ sentence: String, at date: Date) {
@@ -375,6 +414,7 @@ private struct SavedState: Codable {
     var markName: String? = nil
     var committeePinCoordinate: GeoCoordinate? = nil
     var portPinCoordinate: GeoCoordinate? = nil
+    var simulatedStartLine: SimulatedStartLine? = nil
     var languageModelEnabled: Bool? = nil
 }
 

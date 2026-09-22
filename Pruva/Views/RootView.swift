@@ -95,6 +95,7 @@ struct RootView: View {
         .onChange(of: store.isLiveMode) { _, _ in announcementGate.reset(); syncVolumeShortcut() }
         .onChange(of: store.committeePinCoordinate) { _, _ in announcementGate.reset() }
         .onChange(of: store.portPinCoordinate) { _, _ in announcementGate.reset() }
+        .onChange(of: store.simulatedStartLine) { _, _ in announcementGate.reset() }
         .onChange(of: tab) { _, _ in syncVolumeShortcut() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
@@ -108,7 +109,7 @@ struct RootView: View {
     }
 
     private func announceSailingState() {
-        guard scenePhase == .active, store.isLiveMode else { return }
+        guard scenePhase == .active, store.isLiveMode || store.simulatedStartLine != nil else { return }
         let newWarning = announcementGate.deliver(alerts: store.sailingAlerts,
             distance: store.startLineMeasurement?.distanceMeters, distanceSpeech: store.startDistanceSpeech,
             at: store.telemetryNow, speak: { voice.announce($0) })

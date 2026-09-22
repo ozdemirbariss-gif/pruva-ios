@@ -12,6 +12,11 @@ struct SailingAlert: Identifiable, Equatable {
 
 extension RaceStore {
     var startLineMeasurement: StartLineMeasurement? {
+        if !isLiveMode, let simulatedStartLine {
+            return StartLineMeasurement.measure(boat: input.boatPosition,
+                                                committee: simulatedStartLine.committee,
+                                                port: simulatedStartLine.port)
+        }
         guard isLiveMode, let fix = freshPosition, let committee = committeePinCoordinate,
               let port = portPinCoordinate, let boatPoint = fix.value.projected(relativeTo: committee),
               let portPoint = port.projected(relativeTo: committee) else { return nil }
@@ -20,7 +25,7 @@ extension RaceStore {
 
     var startDistanceSpeech: String {
         guard let measurement = startLineMeasurement else { return "Start mesafesi için iki pin ve güncel tekne GPS konumu gerekli." }
-        return "Start hattına en kısa mesafe \(Int(measurement.distanceMeters.rounded())) metre."
+        return "\(isLiveMode ? "" : "Simülasyon. ")Start hattına en kısa mesafe \(Int(measurement.distanceMeters.rounded())) metre."
             + (measurement.isBeyondEndpoint ? " Hat uzantısındasınız; mesafe en yakın pine ölçülüyor." : "")
     }
 
@@ -31,7 +36,7 @@ extension RaceStore {
                 detail: "Yaklaşık \(Int(max(0, analysis.laylineSeconds ?? 0))) saniye · Hattı ve manevra alanını kontrol edin."))
         }
         if startProximity.isNear, let measurement = startLineMeasurement {
-            result.append(SailingAlert(kind: .startLine, title: "Start hattı yakın",
+            result.append(SailingAlert(kind: .startLine, title: isLiveMode ? "Start hattı yakın" : "Simülasyon · start hattı yakın",
                 detail: "Hatta \(Int(measurement.distanceMeters.rounded())) m · \(measurement.isBeyondEndpoint ? "En yakın pine mesafe" : "İki pin arasındaki hatta mesafe")"))
         }
         if let drop = speedDropMonitor.warning, !isLiveMode || connection.isRunning {
@@ -58,6 +63,7 @@ extension RaceStore {
     }
 
     func resetSailingAlerts() {
+        speedDrillStartedAt = nil
         speedDropMonitor.reset()
         laylineProximity = ProximityLatch()
         startProximity = ProximityLatch()

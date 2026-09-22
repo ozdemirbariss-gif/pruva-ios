@@ -1,7 +1,7 @@
 import Foundation
 
 public enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
-    case longTack, persistentHeader, nearLayline, downwind, finalApproach
+    case longTack, persistentHeader, nearLayline, downwind, finalApproach, startApproach
 
     public var id: String { rawValue }
 
@@ -12,6 +12,7 @@ public enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         case .nearLayline: "Layline eşiği"
         case .downwind: "Pupa kararı"
         case .finalApproach: "Son yaklaşım"
+        case .startApproach: "Start provası"
         }
     }
 
@@ -22,6 +23,7 @@ public enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
         case .nearLayline: "Rüzgâr değişir, dönüş hattı taşınır"
         case .downwind: "Pupada kısanı kullan"
         case .finalApproach: "Şamandıraya odaklan"
+        case .startApproach: "Hat mesafesi ve hız düşüşünü dene"
         }
     }
 
@@ -55,6 +57,12 @@ public enum DemoScenario: String, CaseIterable, Identifiable, Sendable {
                       markPosition: Point(east: -205, north: 210),
                       maneuverLossSeconds: 15, expectedShiftDuration: 60,
                       windUncertainty: 3, finalApproach: true)
+        case .startApproach:
+            RaceInput(windDirection: 0, meanWindDirection: 0,
+                      boatSpeed: 6.4, boatPosition: Point(east: 0, north: -120),
+                      markPosition: Point(east: 0, north: 650),
+                      maneuverLossSeconds: 12, expectedShiftDuration: 90,
+                      windUncertainty: 2)
         }
     }
 }

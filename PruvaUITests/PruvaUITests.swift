@@ -1,6 +1,31 @@
 import XCTest
 
 final class PruvaUITests: XCTestCase {
+    @MainActor func testStartPracticeShowsSimulatedDistanceAndLineWarning() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitesting"]
+        app.launch()
+        app.buttons["tab-Senaryolar"].tap()
+        let carousel = app.scrollViews["scenario-carousel"]
+        for _ in 0..<6 {
+            if app.buttons["scenario-startApproach"].isHittable { break }
+            carousel.swipeLeft()
+        }
+        app.buttons["scenario-startApproach"].tap()
+        XCTAssertTrue(app.staticTexts["practice-start-distance"].waitForExistence(timeout: 5))
+        app.buttons["practice-near-line"].tap()
+        app.buttons["tab-Seyir"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["sailing-alert-startLine"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["start-distance-card"].exists)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Simulated start approach"
+        shot.lifetime = .keepAlways
+        add(shot)
+        app.buttons["tab-Senaryolar"].tap()
+        app.buttons["practice-speed-drop"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["sailing-alert-speed"].waitForExistence(timeout: 24))
+    }
+
     @MainActor func testLaylineWarningAppearsAndClearsWithScenarioChange() {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting"]
